@@ -1,0 +1,24 @@
+overwrite: true
+schema:
+  - 'http://localhost:8080/v1/graphql':
+      headers:
+        x-hasura-admin-secret: helloworld
+documents: 'src/graphql/**/*.{ts,graphql}'
+generates:
+  src/services/api.ts:
+    plugins:
+      - add:
+          content: |-
+            {/* prettier-ignore */}
+            // THIS FILE IS GENERATED WITH `pnpm generate`
+      - 'typescript'
+      - 'typescript-operations'
+      - 'typescript-react-apollo'
+    config:
+      scalars:
+        JSONString: string
+        UUID: string
+        Metadata: Record<string, string>
+        DateTime: string
+      dedupeOperationSuffix: true
+      enumsAsTypes: true
