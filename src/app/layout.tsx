@@ -1,8 +1,3 @@
-import type { Metadata } from 'next';
-import NextTopLoader from 'nextjs-toploader';
-
-import { ApolloProviders } from '@/context/ApolloProvider';
-import { SessionProviders } from '@/context/AuthProvider';
 import { satoshiFont } from '@/styles/typography.config';
 
 import './globals.css';
@@ -18,17 +13,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ApolloProviders>
-      <SessionProviders>
-        <html lang="en" className={`${satoshiFont.style.fontFamily}`}>
-          <link rel="preload" href="/icons/error-help-icon.svg" as="image" />
-          <link rel="preload" href="/icons/x-circle.svg" as="image" />
-          <body>
-            <NextTopLoader color={''} height={2} showSpinner={false} />
-            <main>{children}</main>
-          </body>
-        </html>
-      </SessionProviders>
-    </ApolloProviders>
+    <html lang="en" className={`${satoshiFont.style.fontFamily}`}>
+      <link rel="preload" href="/icons/error-help-icon.svg" as="image" />
+      <link rel="preload" href="/icons/x-circle.svg" as="image" />
+      <body>
+        <NextTopLoader color={''} height={2} showSpinner={false} />
+        <main>{children}</main>
+      </body>
+    </html>
   );
 }
