@@ -18,7 +18,7 @@ export default function RootLayout({
       <link rel="preload" href="/icons/error-help-icon.svg" as="image" />
       <link rel="preload" href="/icons/x-circle.svg" as="image" />
       <body className="min-h-screen flex flex-col">
-        <Header />
+        {/* <Header /> */}
         <main className="flex-grow">{children}</main>
         <Footer />
       </body>
