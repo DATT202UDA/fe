@@ -1,11 +1,12 @@
 'use client';
 
-import { ProfileForm } from './components/Profile';
+import { ProfileInformation } from "./components/Profile/ProfileInformation";
+
 
 const ProfileView = () => {
   return (
     <div>
-      <ProfileForm />
+      <ProfileInformation />
     </div>
   );
 };
