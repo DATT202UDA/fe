@@ -1,11 +1,5 @@
-
-
 const HomeView = () => {
-    return (
-        <div>
-            HOME VIEW
-        </div>
-    );
+  return <div>HOME VIEW</div>;
 };
 
 export default HomeView;
