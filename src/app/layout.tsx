@@ -1,6 +1,8 @@
 import { satoshiFont } from '@/styles/typography.config';
 
+
 import './globals.css';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Naikyo Proxy HUB',
@@ -17,8 +19,10 @@ export default function RootLayout({
       <link rel="preload" href="/icons/error-help-icon.svg" as="image" />
       <link rel="preload" href="/icons/x-circle.svg" as="image" />
       <body>
-        <NextTopLoader color={''} height={2} showSpinner={false} />
-        <main>{children}</main>
+        {/* <NextTopLoader color={''} height={2} showSpinner={false} /> */}
+       
+          <main>{children}</main>
+       
       </body>
     </html>
   );

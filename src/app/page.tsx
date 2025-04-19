@@ -1,13 +1,7 @@
 'use client';
-import { useSession } from 'next-auth/react';
-import { redirect } from 'next/navigation';
+
+import HomeView from "@/views/guest/Home";
 
 export default function Home() {
-  const { status } = useSession();
-
-  if (status === 'loading') {
-    return <div className="h-screen">loading...</div>;
-  }
-
-  return redirect(status === 'authenticated' ? '/assets' : '/login');
+return(<HomeView/>)
 }
