@@ -2,222 +2,240 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import {
+  FaFacebook,
+  FaTwitter,
+  FaInstagram,
+  FaYoutube,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaMapMarkerAlt,
+} from 'react-icons/fa';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-100 pt-16 pb-8">
-      <div className="container mx-auto px-4">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* Logo and About */}
+    <footer className="bg-white">
+      {/* Newsletter Section */}
+      <div className="bg-[#F8F6F3] py-12">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h3 className="text-2xl font-bold text-[#B86B2B] mb-4">
+              Đăng ký nhận thông tin
+            </h3>
+            <p className="text-[#7A5C3E] mb-6">
+              Nhận thông tin về sản phẩm mới và khuyến mãi đặc biệt
+            </p>
+            <div className="flex gap-4 max-w-xl mx-auto">
+              <input
+                type="email"
+                placeholder="Nhập email của bạn"
+                className="flex-1 px-4 py-3 rounded-full border border-[#E5E3DF] focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 outline-none transition"
+              />
+              <button className="bg-[#B86B2B] hover:bg-[#E6A15A] text-white font-semibold px-8 py-3 rounded-full transition">
+                Đăng ký
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Footer Content */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+          {/* Company Info */}
           <div>
             <Link href="/" className="inline-block mb-6">
-              <h1 className="text-2xl font-bold">
-                <span className="text-[#FF4B91]">RAF</span>
-                <span>CART</span>
-              </h1>
+              <div className="flex flex-col">
+                <span className="text-3xl font-extrabold text-[#B86B2B]">
+                  GiaDụng
+                </span>
+                <span className="text-xs text-[#7A5C3E] font-medium tracking-wide">
+                  Mua sắm tiện nghi mỗi ngày
+                </span>
+              </div>
             </Link>
-            <p className="text-gray-600 mb-4">
-              Lorem ipsum, or lipsum as it is sometimes kno wn, is dummy text
-              used in laying out print, gra phic or web designs.
+            <p className="text-[#7A5C3E] mb-6">
+              Chuyên cung cấp các sản phẩm gia dụng chất lượng cao, đa dạng mẫu
+              mã, giá cả phải chăng. Cam kết mang đến trải nghiệm mua sắm tốt
+              nhất cho khách hàng.
             </p>
+            <div className="flex space-x-4">
+              <a
+                href="#"
+                className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+              >
+                <FaFacebook size={24} />
+              </a>
+              <a
+                href="#"
+                className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+              >
+                <FaTwitter size={24} />
+              </a>
+              <a
+                href="#"
+                className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+              >
+                <FaInstagram size={24} />
+              </a>
+              <a
+                href="#"
+                className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+              >
+                <FaYoutube size={24} />
+              </a>
+            </div>
           </div>
 
-          {/* My Account */}
+          {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">MY ACCOUNT</h3>
-            <ul className="space-y-2">
+            <h3 className="text-lg font-semibold text-[#B86B2B] mb-6">
+              Liên kết nhanh
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/products"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+                >
+                  Sản phẩm
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/promotions"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+                >
+                  Khuyến mãi
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/brands"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+                >
+                  Thương hiệu
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/blog"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+                >
+                  Tin tức
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+                >
+                  Liên hệ
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Customer Service */}
+          <div>
+            <h3 className="text-lg font-semibold text-[#B86B2B] mb-6">
+              Chăm sóc khách hàng
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/account"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+                >
+                  Tài khoản
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/orders"
-                  className="text-gray-600 hover:text-[#FF4B91]"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
                 >
-                  Orders
+                  Đơn hàng
                 </Link>
               </li>
               <li>
                 <Link
                   href="/wishlist"
-                  className="text-gray-600 hover:text-[#FF4B91]"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
                 >
-                  Wishlist
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/track-order"
-                  className="text-gray-600 hover:text-[#FF4B91]"
-                >
-                  Track Order
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/manage-account"
-                  className="text-gray-600 hover:text-[#FF4B91]"
-                >
-                  Manage Account
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/return-order"
-                  className="text-gray-600 hover:text-[#FF4B91]"
-                >
-                  Return Order
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Information */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">INFORMATION</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/about"
-                  className="text-gray-600 hover:text-[#FF4B91]"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/return-policy"
-                  className="text-gray-600 hover:text-[#FF4B91]"
-                >
-                  Return Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="text-gray-600 hover:text-[#FF4B91]"
-                >
-                  Terms & condition
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/privacy"
-                  className="text-gray-600 hover:text-[#FF4B91]"
-                >
-                  Privacy Policy
+                  Yêu thích
                 </Link>
               </li>
               <li>
                 <Link
                   href="/faq"
-                  className="text-gray-600 hover:text-[#FF4B91]"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
                 >
                   FAQ
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/support"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+                >
+                  Hỗ trợ
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Contact Info */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">CONTACT</h3>
-            <ul className="space-y-2 text-gray-600">
-              <li className="flex items-start space-x-2">
-                <svg
-                  className="w-6 h-6 mt-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                <span>
-                  7895 Dr New Albuquerue, NM 19800, United States Of America
+            <h3 className="text-lg font-semibold text-[#B86B2B] mb-6">
+              Liên hệ
+            </h3>
+            <ul className="space-y-4">
+              <li className="flex items-start space-x-3">
+                <FaMapMarkerAlt className="text-[#B86B2B] mt-1" />
+                <span className="text-[#7A5C3E]">
+                  123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh
                 </span>
               </li>
-              <li className="flex items-center space-x-2">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                  />
-                </svg>
-                <span>+566 477 256, +566 254 575</span>
+              <li className="flex items-center space-x-3">
+                <FaPhoneAlt className="text-[#B86B2B]" />
+                <span className="text-[#7A5C3E]">1900-xxxx</span>
               </li>
-              <li className="flex items-center space-x-2">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-                <span>info@domain.com</span>
+              <li className="flex items-center space-x-3">
+                <FaEnvelope className="text-[#B86B2B]" />
+                <span className="text-[#7A5C3E]">info@giadung.com</span>
               </li>
             </ul>
           </div>
         </div>
+      </div>
 
-        {/* Copyright and Payment Methods */}
-        <div className="border-t border-gray-200 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-600 mb-4 md:mb-0">
-              © RAFCART - All Rights Reserved
+      {/* Bottom Bar */}
+      <div className="border-t border-[#E5E3DF]">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-[#7A5C3E] text-sm">
+              © 2024 GiaDụng. Tất cả quyền được bảo lưu.
             </p>
-            <div className="flex space-x-4">
-              <Image
-                src="/images/payment/visa.png"
-                alt="Visa"
-                width={40}
-                height={25}
-              />
-              <Image
-                src="/images/payment/mastercard.png"
-                alt="Mastercard"
-                width={40}
-                height={25}
-              />
-              <Image
-                src="/images/payment/paypal.png"
-                alt="PayPal"
-                width={40}
-                height={25}
-              />
-              <Image
-                src="/images/payment/skrill.png"
-                alt="Skrill"
-                width={40}
-                height={25}
-              />
-              <Image
-                src="/images/payment/maestro.png"
-                alt="Maestro"
-                width={40}
-                height={25}
-              />
+            <div className="flex items-center gap-6">
+              <Link
+                href="/privacy"
+                className="text-[#7A5C3E] hover:text-[#B86B2B] text-sm transition"
+              >
+                Chính sách bảo mật
+              </Link>
+              <Link
+                href="/terms"
+                className="text-[#7A5C3E] hover:text-[#B86B2B] text-sm transition"
+              >
+                Điều khoản sử dụng
+              </Link>
+              <Link
+                href="/shipping"
+                className="text-[#7A5C3E] hover:text-[#B86B2B] text-sm transition"
+              >
+                Chính sách vận chuyển
+              </Link>
             </div>
           </div>
         </div>

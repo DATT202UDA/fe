@@ -6,5 +6,6 @@ export { default as Footer } from './Feature/Layouts/Footer/index';
 
 /**BaseUI component */
 export * from './BaseUI/Card/Card';
-export * from './BaseUI/Form/Input/InputField';
-export * from './BaseUI/Form/Button/Button';
+export * from './BaseUI/Form/Input';
+export * from './BaseUI/Button';
+export * from './BaseUI/Form/FormGroup';

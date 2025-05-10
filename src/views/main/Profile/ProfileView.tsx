@@ -1,14 +1,9 @@
 'use client';
 
-import { ProfileInformation } from "./components/Profile/ProfileInformation";
-
+import { ProfileInformation } from './components/Profile/ProfileInformation';
 
 const ProfileView = () => {
-  return (
-    <div>
-      <ProfileInformation />
-    </div>
-  );
+  return <ProfileInformation />;
 };
 
 export default ProfileView;
