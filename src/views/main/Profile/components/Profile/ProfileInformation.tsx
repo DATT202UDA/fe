@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 import {
   FiEdit2,
   FiShoppingBag,
@@ -13,12 +14,21 @@ import {
   FiClock,
   FiLogOut,
 } from 'react-icons/fi';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 interface UserProfile {
+  username: string;
   fullName: string;
   email: string;
   phone: string;
   avatar: string;
+  address: string;
+  zalo: string;
+  facebook: string;
+  gender: string;
+  school: string;
   joinDate: string;
   totalOrders: number;
   wishlistItems: number;
@@ -26,23 +36,116 @@ interface UserProfile {
   savedCards: number;
 }
 
+interface CustomSession {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    accessToken: string;
+    refreshToken: string;
+    role: string;
+  };
+}
+
 export const ProfileInformation = () => {
+  const { data: session } = useSession() as { data: CustomSession | null };
   const [profile, setProfile] = useState<UserProfile>({
-    fullName: 'Nguyễn Văn A',
-    email: 'nguyenvana@example.com',
-    phone: '0123 456 789',
-    avatar: '/images/profile.png',
-    joinDate: '01/01/2024',
-    totalOrders: 12,
-    wishlistItems: 8,
-    savedAddresses: 3,
-    savedCards: 2,
+    username: '',
+    fullName: '',
+    email: '',
+    phone: '',
+    avatar: '',
+    address: '',
+    zalo: '',
+    facebook: '',
+    gender: '',
+    school: '',
+    joinDate: '',
+    totalOrders: 0,
+    wishlistItems: 0,
+    savedAddresses: 0,
+    savedCards: 0,
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    if (session?.user?.accessToken) {
+      fetchUserProfile();
+     
+    }
+  }, [session]);
+
+  const fetchUserProfile = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const accessToken = session?.user?.accessToken;
+      
+      if (!accessToken) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await axios.get(`${API_URL}/users/profile`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.data) {
+        const userData = response.data;
+        setProfile({
+          username: userData.username || '',
+          fullName: userData.full_name || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          avatar: userData.avatar || '',
+          address: userData.address || '',
+          zalo: userData.zalo || '',
+          facebook: userData.facebook || '',
+          gender: userData.gender || '',
+          school: userData.school || '',
+          joinDate: userData.joinDate || '',
+          totalOrders: userData.totalOrders || 0,
+          wishlistItems: userData.wishlistItems || 0,
+          savedAddresses: userData.savedAddresses || 0,
+          savedCards: userData.savedCards || 0,
+        });
+        setEditedProfile({
+          username: userData.username || '',
+          fullName: userData.full_name || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          avatar: userData.avatar || '',
+          address: userData.address || '',
+          zalo: userData.zalo || '',
+          facebook: userData.facebook || '',
+          gender: userData.gender || '',
+          school: userData.school || '',
+          joinDate: userData.joinDate || '',
+          totalOrders: userData.totalOrders || 0,
+          wishlistItems: userData.wishlistItems || 0,
+          savedAddresses: userData.savedAddresses || 0,
+          savedCards: userData.savedCards || 0,
+        });
+        console.log("userData",userData);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch profile data');
+      console.error('Error fetching profile:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setEditedProfile((prev) => ({
       ...prev,
@@ -50,11 +153,61 @@ export const ProfileInformation = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfile(editedProfile);
-    setIsEditing(false);
+    try {
+      const accessToken = session?.user?.accessToken;
+      
+      if (!accessToken) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await axios.patch(
+        `${API_URL}/users/profile`,
+        {
+          username: editedProfile.username,
+          full_name: editedProfile.fullName,
+          email: editedProfile.email,
+          phone: editedProfile.phone,
+          address: editedProfile.address,
+          zalo: editedProfile.zalo,
+          facebook: editedProfile.facebook,
+          gender: editedProfile.gender,
+          school: editedProfile.school,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data) {
+        setProfile(editedProfile);
+        setIsEditing(false);
+      }
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F5E9DA]/30 flex items-center justify-center">
+        <div className="text-[#B86B2B] text-xl">Đang tải thông tin...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#F5E9DA]/30 flex items-center justify-center">
+        <div className="text-red-500 text-xl">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F5E9DA]/30">
@@ -211,14 +364,26 @@ export const ProfileInformation = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tên đăng nhập
+                    </label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={isEditing ? editedProfile.username : profile.username}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      className="w-full px-3 py-2 border border-[#B86B2B]/20 rounded-md focus:outline-none focus:ring-1 focus:ring-[#B86B2B] disabled:bg-gray-50 bg-white/70 backdrop-blur"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Họ và tên
                     </label>
                     <input
                       type="text"
                       name="fullName"
-                      value={
-                        isEditing ? editedProfile.fullName : profile.fullName
-                      }
+                      value={isEditing ? editedProfile.fullName : profile.fullName}
                       onChange={handleInputChange}
                       disabled={!isEditing}
                       className="w-full px-3 py-2 border border-[#B86B2B]/20 rounded-md focus:outline-none focus:ring-1 focus:ring-[#B86B2B] disabled:bg-gray-50 bg-white/70 backdrop-blur"
@@ -247,6 +412,79 @@ export const ProfileInformation = () => {
                       type="tel"
                       name="phone"
                       value={isEditing ? editedProfile.phone : profile.phone}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      className="w-full px-3 py-2 border border-[#B86B2B]/20 rounded-md focus:outline-none focus:ring-1 focus:ring-[#B86B2B] disabled:bg-gray-50 bg-white/70 backdrop-blur"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Địa chỉ
+                    </label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={isEditing ? editedProfile.address : profile.address}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      className="w-full px-3 py-2 border border-[#B86B2B]/20 rounded-md focus:outline-none focus:ring-1 focus:ring-[#B86B2B] disabled:bg-gray-50 bg-white/70 backdrop-blur"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Zalo
+                    </label>
+                    <input
+                      type="text"
+                      name="zalo"
+                      value={isEditing ? editedProfile.zalo : profile.zalo}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      className="w-full px-3 py-2 border border-[#B86B2B]/20 rounded-md focus:outline-none focus:ring-1 focus:ring-[#B86B2B] disabled:bg-gray-50 bg-white/70 backdrop-blur"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Facebook
+                    </label>
+                    <input
+                      type="text"
+                      name="facebook"
+                      value={isEditing ? editedProfile.facebook : profile.facebook}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      className="w-full px-3 py-2 border border-[#B86B2B]/20 rounded-md focus:outline-none focus:ring-1 focus:ring-[#B86B2B] disabled:bg-gray-50 bg-white/70 backdrop-blur"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Giới tính
+                    </label>
+                    <select
+                      name="gender"
+                      value={isEditing ? editedProfile.gender : profile.gender}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      className="w-full px-3 py-2 border border-[#B86B2B]/20 rounded-md focus:outline-none focus:ring-1 focus:ring-[#B86B2B] disabled:bg-gray-50 bg-white/70 backdrop-blur"
+                    >
+                      <option value="male">Nam</option>
+                      <option value="female">Nữ</option>
+                      <option value="other">Khác</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Trường học
+                    </label>
+                    <input
+                      type="text"
+                      name="school"
+                      value={isEditing ? editedProfile.school : profile.school}
                       onChange={handleInputChange}
                       disabled={!isEditing}
                       className="w-full px-3 py-2 border border-[#B86B2B]/20 rounded-md focus:outline-none focus:ring-1 focus:ring-[#B86B2B] disabled:bg-gray-50 bg-white/70 backdrop-blur"
