@@ -1,9 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaComments, FaTimes, FaPaperPlane, FaRobot } from 'react-icons/fa';
+import {
+  FaComments,
+  FaTimes,
+  FaPaperPlane,
+  FaRobot,
+  FaUserCircle,
+} from 'react-icons/fa';
 import Image from 'next/image';
+import ChatService from '../../services/ChatService';
+
+const LoadingDots = () => (
+  <div className="flex items-center gap-1">
+    <span
+      className="w-2 h-2 bg-[#B86B2B] rounded-full animate-bounce"
+      style={{ animationDelay: '0ms' }}
+    ></span>
+    <span
+      className="w-2 h-2 bg-[#B86B2B] rounded-full animate-bounce"
+      style={{ animationDelay: '150ms' }}
+    ></span>
+    <span
+      className="w-2 h-2 bg-[#B86B2B] rounded-full animate-bounce"
+      style={{ animationDelay: '300ms' }}
+    ></span>
+  </div>
+);
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,13 +40,19 @@ const ChatWidget = () => {
       timestamp: new Date(),
     },
   ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [botTyping, setBotTyping] = useState('');
 
-  const botAvatar = '/chat-bot.png'; // Đặt avatar bot (bạn có thể thay bằng ảnh khác)
-  const userAvatar = '/user-avatar.png'; // Đặt avatar user (bạn có thể thay bằng ảnh khác)
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  const handleSendMessage = () => {
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, botTyping]);
+
+  const handleSendMessage = async () => {
     if (message.trim()) {
-      // Add user message
       setMessages([
         ...messages,
         {
@@ -32,21 +62,43 @@ const ChatWidget = () => {
           timestamp: new Date(),
         },
       ]);
-
-      // Simulate bot response
-      setTimeout(() => {
+      setIsLoading(true);
+      setBotTyping('');
+      const userMsg = message;
+      setMessage('');
+      try {
+        const res = await ChatService.sendMessage(userMsg);
+        // Render kiểu chat gpt: hiện dần từng ký tự
+        let botMsg = '';
+        for (let i = 0; i < res.length; i++) {
+          botMsg += res[i];
+          setBotTyping(botMsg);
+          // delay nhỏ để tạo hiệu ứng
+          await new Promise((r) => setTimeout(r, 18));
+        }
         setMessages((prev) => [
           ...prev,
           {
             id: prev.length + 1,
-            text: 'Cảm ơn bạn đã liên hệ. Chúng tôi sẽ phản hồi sớm nhất có thể!',
+            text: res,
             sender: 'bot',
             timestamp: new Date(),
           },
         ]);
-      }, 1000);
-
-      setMessage('');
+        setBotTyping('');
+      } catch (e: any) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: prev.length + 1,
+            text: e.message || 'Có lỗi khi gửi tin nhắn. Vui lòng thử lại.',
+            sender: 'bot',
+            timestamp: new Date(),
+          },
+        ]);
+        setBotTyping('');
+      }
+      setIsLoading(false);
     }
   };
 
@@ -107,13 +159,9 @@ const ChatWidget = () => {
                   {/* Avatar */}
                   <div className="flex-shrink-0">
                     {msg.sender === 'user' ? (
-                      <Image
-                        src={userAvatar}
-                        alt="User"
-                        width={32}
-                        height={32}
-                        className="rounded-full border border-white/50 shadow"
-                      />
+                      <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#B86B2B]/90 text-white border border-white/50 shadow">
+                        <FaUserCircle size={20} />
+                      </div>
                     ) : (
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#B86B2B]/90 text-white border border-white/50 shadow">
                         <FaRobot size={20} />
@@ -135,6 +183,35 @@ const ChatWidget = () => {
                   </div>
                 </div>
               ))}
+              {/* Hiệu ứng bot đang trả lời kiểu chat gpt */}
+              {botTyping && (
+                <div className="flex items-end gap-2 justify-start">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#B86B2B]/90 text-white border border-white/50 shadow">
+                      <FaRobot size={20} />
+                    </div>
+                  </div>
+                  <div className="max-w-[80%] rounded-2xl p-2 sm:p-3 transition-all duration-200 shadow-md bg-white/80 text-gray-800 border border-[#B86B2B]/10">
+                    <p className="text-xs sm:text-sm whitespace-pre-line">
+                      {botTyping}
+                      <span className="animate-pulse">▋</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+              {isLoading && !botTyping && (
+                <div className="flex items-end gap-2 justify-start">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#B86B2B]/90 text-white border border-white/50 shadow">
+                      <FaRobot size={20} />
+                    </div>
+                  </div>
+                  <div className="max-w-[80%] rounded-2xl p-2 sm:p-3 transition-all duration-200 shadow-md bg-white/80 text-gray-800 border border-[#B86B2B]/10">
+                    <LoadingDots />
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
             </div>
 
             {/* Chat Input */}

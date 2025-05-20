@@ -1,11 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaArrowRight, FaStar, FaShoppingCart, FaHeart } from 'react-icons/fa';
 
 const HomeView = () => {
+  const session = useSession();
+
   const featuredProducts = [
     {
       id: 1,

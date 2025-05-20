@@ -60,6 +60,8 @@ export const authOptions = (): AuthOptions => {
     },
     callbacks: {
       async jwt({ token, user }) {
+        console.log('token', token);
+        console.log('user', user);
         if (user) {
           token.id = user.id;
           token.username = user.username;
@@ -69,20 +71,26 @@ export const authOptions = (): AuthOptions => {
           token.exp = Math.floor(Date.now() / 1000) + user.expiresIn;
           token.role = user.role;
         }
+        console.log('tokfsdafdsafen');
 
-        // Kiểm tra nếu token sắp hết hạn (trước 5 phút)
-        if (
-          token.exp &&
-          typeof token.exp === 'number' &&
-          Date.now() >= (token.exp - 300) * 1000
-        ) {
-          return refreshAccessToken(token);
+        if (token.exp && Date.now() >= (token.exp - 300) * 1000) {
+          try {
+            const refreshedToken = await refreshAccessToken(token);
+            console.log('refreshedToken', refreshedToken);
+            return refreshedToken;
+          } catch (error) {
+            return { ...token, error: 'RefreshAccessTokenError' };
+          }
         }
 
         return token;
       },
 
       async session({ session, token }) {
+        if (token.error === 'RefreshAccessTokenError') {
+          throw new Error('RefreshAccessTokenError');
+        }
+
         return {
           ...session,
           user: {
@@ -118,6 +126,8 @@ async function refreshAccessToken(token: any) {
       },
     );
 
+    console.log('data', data);
+
     const nowInSec = Math.floor(Date.now() / 1000);
     const expiresIn = 60 * 60; // 1 giờ
 
@@ -130,9 +140,6 @@ async function refreshAccessToken(token: any) {
     };
   } catch (error: any) {
     console.error('Error refreshing access token:', error);
-    return {
-      ...token,
-      error: 'RefreshAccessTokenError',
-    };
+    throw error;
   }
 }

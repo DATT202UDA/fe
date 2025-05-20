@@ -24,7 +24,8 @@ declare module 'next-auth/jwt' {
     email: string;
     accessToken: string;
     refreshToken: string;
-    expiresIn: number;
+    exp: number;
     role: string;
+    error?: string;
   }
 }

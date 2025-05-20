@@ -1,5 +1,5 @@
 import HomeView from '@/views/guest/Home';
 
-export default function Login() {
+export default async function Home() {
   return <HomeView />;
 }

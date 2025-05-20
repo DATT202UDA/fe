@@ -13,12 +13,25 @@ import {
   FaMapMarkerAlt,
   FaTimes,
   FaBars,
+  FaChevronDown,
 } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
+import toast from 'react-hot-toast';
 
 const Header = () => {
   const [selectedLocation, setSelectedLocation] = useState('Toàn Quốc');
   const [search, setSearch] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    toast.success('Đăng xuất thành công');
+    router.push('/dang-nhap');
+  };
 
   return (
     <header className="w-full bg-white shadow-sm">
@@ -37,7 +50,10 @@ const Header = () => {
               </div>
             </div>
             <div className="hidden md:flex items-center space-x-4">
-              <Link href="/about" className="hover:text-[#FFD600] transition">
+              <Link
+                href="/ve-chung-toi"
+                className="hover:text-[#FFD600] transition"
+              >
                 Về chúng tôi
               </Link>
               <Link href="/contact" className="hover:text-[#FFD600] transition">
@@ -94,21 +110,83 @@ const Header = () => {
                   0
                 </span>
               </Link>
-              <Link href="/profile" className="group">
-                <FaUserCircle
-                  size={24}
-                  className="text-[#7A5C3E] group-hover:text-[#B86B2B] transition"
-                />
-              </Link>
-              <Link
-                href="/dang-nhap"
-                className="hidden md:flex items-center px-5 py-2.5 rounded-full border-2 border-[#B86B2B] text-[#B86B2B] hover:bg-[#B86B2B] hover:text-white font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md"
-              >
-                Đăng nhập
-              </Link>
-              <button className="hidden md:block bg-[#B86B2B] hover:bg-[#E6A15A] text-white font-semibold px-6 py-2.5 rounded-full transition">
-                Đăng bán
-              </button>
+              {session ? (
+                <>
+                  <div className="relative">
+                    <button
+                      className="group flex items-center space-x-1 focus:outline-none"
+                      onClick={() => setIsProfileDropdownOpen((v) => !v)}
+                    >
+                      <FaUserCircle
+                        size={24}
+                        className="text-[#7A5C3E] group-hover:text-[#B86B2B] transition"
+                      />
+                      <FaChevronDown
+                        size={16}
+                        className={`text-[#7A5C3E] group-hover:text-[#B86B2B] transition-transform duration-200 ${
+                          isProfileDropdownOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+                    {isProfileDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-[#E5E3DF]">
+                        <div className="px-4 py-2 border-b border-[#E5E3DF]">
+                          <p className="text-sm font-medium text-[#7A5C3E]">
+                            {session.user?.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {session.user?.email}
+                          </p>
+                        </div>
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-2 text-[#7A5C3E] hover:bg-[#F5E9DA] rounded transition"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          Trang cá nhân
+                        </Link>
+                        <Link
+                          href="/admin/products"
+                          className="block px-4 py-2 text-[#B86B2B] hover:bg-[#F5E9DA] rounded transition"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          Quản lý sản phẩm
+                        </Link>
+                        <button
+                          className="block w-full text-left px-4 py-2 text-red-500 hover:bg-[#F5E9DA] rounded transition"
+                          onClick={() => {
+                            setIsProfileDropdownOpen(false);
+                            handleSignOut();
+                          }}
+                        >
+                          Đăng xuất
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    className="hidden md:block bg-[#B86B2B] hover:bg-[#E6A15A] text-white font-semibold px-6 py-2.5 rounded-full transition"
+                    onClick={() => router.push('/cua-hang')}
+                  >
+                    Đăng bán
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/dang-nhap"
+                    className="hidden md:flex items-center justify-center whitespace-nowrap px-6 py-2.5 rounded-full border-2 border-[#B86B2B] text-[#B86B2B] hover:bg-[#B86B2B] hover:text-white font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md"
+                  >
+                    Đăng nhập
+                  </Link>
+                  <Link
+                    href="/dang-ky"
+                    className="hidden md:flex items-center justify-center whitespace-nowrap px-6 py-2.5 rounded-full bg-[#B86B2B] text-white hover:bg-[#E6A15A] font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md"
+                  >
+                    Đăng ký
+                  </Link>
+                </>
+              )}
               {/* Mobile Menu Button */}
               <button
                 className="md:hidden text-[#7A5C3E] hover:text-[#B86B2B] transition"
@@ -133,34 +211,11 @@ const Header = () => {
                 Trang chủ
               </Link>
               <Link
-                href="/products"
+                href="/san-pham"
                 className="text-[#7A5C3E] hover:text-[#B86B2B] font-medium transition"
               >
                 Sản phẩm
               </Link>
-              <Link
-                href="/promotions"
-                className="text-[#7A5C3E] hover:text-[#B86B2B] font-medium transition"
-              >
-                Khuyến mãi
-              </Link>
-              <Link
-                href="/brands"
-                className="text-[#7A5C3E] hover:text-[#B86B2B] font-medium transition"
-              >
-                Thương hiệu
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <select
-                className="bg-transparent border-none focus:ring-0 text-[#7A5C3E] font-medium"
-                value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
-              >
-                <option value="Toàn Quốc">Toàn Quốc</option>
-                <option value="Hà Nội">Hà Nội</option>
-                <option value="TP.HCM">TP.HCM</option>
-              </select>
             </div>
           </nav>
         </div>
@@ -275,7 +330,7 @@ const Header = () => {
                             <span className="absolute inset-0 bg-[#B86B2B]/0 group-hover:bg-[#B86B2B]/5 rounded-lg transition-all duration-300"></span>
                           </Link>
                           <Link
-                            href="/about"
+                            href="/ve-chung-toi"
                             className="group relative px-4 py-3 rounded-lg transition-all duration-300 hover:bg-[#B86B2B]/5"
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
@@ -309,16 +364,60 @@ const Header = () => {
 
                       {/* Mobile Bottom Actions */}
                       <div className="border-t border-[#E5E3DF] px-4 py-6 flex flex-col gap-4">
-                        <Link
-                          href="/dang-nhap"
-                          className="w-full bg-[#B86B2B] hover:bg-[#E6A15A] text-white font-semibold px-0 py-3 rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg text-center flex items-center justify-center"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Đăng nhập
-                        </Link>
-                        <button className="w-full bg-[#B86B2B] hover:bg-[#E6A15A] text-white font-semibold px-0 py-3 rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg text-center">
-                          Đăng bán
-                        </button>
+                        {session ? (
+                          <div className="space-y-4">
+                            <div className="px-4 py-2 bg-[#F5E9DA] rounded-lg">
+                              <p className="text-sm font-medium text-[#7A5C3E]">
+                                {session.user?.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {session.user?.email}
+                              </p>
+                            </div>
+                            <Link
+                              href="/profile"
+                              className="w-full bg-[#B86B2B] hover:bg-[#E6A15A] text-white font-semibold px-0 py-3 rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg text-center flex items-center justify-center"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              Trang cá nhân
+                            </Link>
+                            <button
+                              className="w-full bg-[#B86B2B] hover:bg-[#E6A15A] text-white font-semibold px-0 py-3 rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg text-center"
+                              onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                router.push('/cua-hang');
+                              }}
+                            >
+                              Đăng bán
+                            </button>
+                            <button
+                              className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold px-0 py-3 rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg text-center"
+                              onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                handleSignOut();
+                              }}
+                            >
+                              Đăng xuất
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <Link
+                              href="/dang-nhap"
+                              className="w-full border-2 border-[#B86B2B] text-[#B86B2B] hover:bg-[#B86B2B] hover:text-white font-semibold px-0 py-3 rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg text-center flex items-center justify-center"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              Đăng nhập
+                            </Link>
+                            <Link
+                              href="/dang-ky"
+                              className="w-full bg-[#B86B2B] hover:bg-[#E6A15A] text-white font-semibold px-0 py-3 rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg text-center flex items-center justify-center"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              Đăng ký
+                            </Link>
+                          </>
+                        )}
                       </div>
                     </div>
                   </Dialog.Panel>
