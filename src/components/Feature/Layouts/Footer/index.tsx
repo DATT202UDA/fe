@@ -127,7 +127,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/contact"
+                  href="/lien-he"
                   className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
                 >
                   Liên hệ

@@ -47,7 +47,7 @@ export default function NotFound() {
                 <FaArrowRight className="ml-2" />
               </Link>
               <Link
-                href="/products"
+                href="/san-pham"
                 className="inline-flex items-center bg-white hover:bg-gray-50 text-[#B86B2B] px-8 py-4 rounded-full font-semibold shadow-lg transition-all duration-300 text-lg border border-[#B86B2B]"
               >
                 Xem sản phẩm

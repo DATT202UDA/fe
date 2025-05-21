@@ -87,6 +87,11 @@ class ProductService {
     const res = await axiosInstance.get(`/products/status/${status}`);
     return res.data;
   }
+
+  static async getFeaturedProducts(): Promise<Product[]> {
+    const res = await axiosInstance.get('/products/featured');
+    return res.data;
+  }
 }
 
 export default ProductService;

@@ -1,71 +1,44 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaArrowRight, FaStar, FaShoppingCart, FaHeart } from 'react-icons/fa';
+import FeaturedProducts from './components/FeaturedProducts';
+import Categories from './components/Categories';
+import { useState, useEffect } from 'react';
 
 const HomeView = () => {
-  const session = useSession();
+  const [timeLeft, setTimeLeft] = useState({
+    hours: '00',
+    minutes: '00',
+    seconds: '00',
+  });
 
-  const featuredProducts = [
-    {
-      id: 1,
-      name: 'Máy hút bụi thông minh',
-      price: '2.990.000đ',
-      image: '/images/products/vacuum.jpg',
-      rating: 4.5,
-      discount: 15,
-    },
-    {
-      id: 2,
-      name: 'Nồi cơm điện cao cấp',
-      price: '1.890.000đ',
-      image: '/images/products/rice-cooker.jpg',
-      rating: 4.8,
-      discount: 10,
-    },
-    {
-      id: 3,
-      name: 'Máy giặt lồng đôi',
-      price: '12.990.000đ',
-      image: '/images/products/washer.jpg',
-      rating: 4.7,
-      discount: 20,
-    },
-    {
-      id: 4,
-      name: 'Tủ lạnh Side by Side',
-      price: '25.990.000đ',
-      image: '/images/products/fridge.jpg',
-      rating: 4.9,
-      discount: 12,
-    },
-  ];
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
 
-  const categories = [
-    {
-      id: 1,
-      name: 'Đồ gia dụng nhà bếp',
-      image: '/images/categories/kitchen.jpg',
-    },
-    {
-      id: 2,
-      name: 'Đồ gia dụng phòng tắm',
-      image: '/images/categories/bathroom.jpg',
-    },
-    {
-      id: 3,
-      name: 'Đồ gia dụng phòng khách',
-      image: '/images/categories/living.jpg',
-    },
-    {
-      id: 4,
-      name: 'Đồ gia dụng phòng ngủ',
-      image: '/images/categories/bedroom.jpg',
-    },
-  ];
+      const difference = endOfDay.getTime() - now.getTime();
+
+      const hours = Math.floor(difference / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft({
+        hours: hours.toString().padStart(2, '0'),
+        minutes: minutes.toString().padStart(2, '0'),
+        seconds: seconds.toString().padStart(2, '0'),
+      });
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const brands = [
     { id: 1, name: 'Samsung', logo: '/images/brands/samsung.png' },
@@ -142,9 +115,19 @@ const HomeView = () => {
                     Ưu đãi hôm nay
                   </span>
                 </div>
-                <span className="text-[#7A5C3E] text-xs md:text-sm">
-                  26/04/2025
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-[#7A5C3E] text-xs md:text-sm">
+                    {new Date().toLocaleDateString('vi-VN', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })}
+                  </span>
+                  <span className="text-[#B86B2B] text-xs font-medium">
+                    Còn lại: {timeLeft.hours}:{timeLeft.minutes}:
+                    {timeLeft.seconds}
+                  </span>
+                </div>
               </div>
               <div className="mb-4">
                 <div className="text-2xl md:text-3xl font-extrabold text-[#B86B2B] mb-1">
@@ -168,148 +151,13 @@ const HomeView = () => {
       </section>
 
       {/* Categories Section */}
-      <section className="py-12 md:py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-8 md:mb-12"
-          >
-            <h2 className="text-2xl md:text-3xl font-bold text-[#7A5C3E] mb-3 md:mb-4">
-              Danh mục sản phẩm
-            </h2>
-            <p className="text-gray-600 text-sm md:text-base">
-              Lựa chọn từ nhiều danh mục đa dạng
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-            {categories.map((category, index) => (
-              <motion.div
-                key={category.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="group relative h-48 md:h-64 rounded-2xl overflow-hidden"
-              >
-                <Image
-                  src={category.image}
-                  alt={category.name}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-                  <h3 className="text-lg md:text-xl font-semibold text-white mb-2">
-                    {category.name}
-                  </h3>
-                  <Link
-                    href={`/categories/${category.id}`}
-                    className="inline-flex items-center text-white hover:text-[#FFD600] transition-colors duration-300 text-sm md:text-base"
-                  >
-                    Xem thêm
-                    <FaArrowRight className="ml-2" />
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Categories />
 
       {/* Featured Products Section */}
-      <section className="py-12 md:py-20">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-8 md:mb-12"
-          >
-            <h2 className="text-2xl md:text-3xl font-bold text-[#7A5C3E] mb-3 md:mb-4">
-              Sản phẩm nổi bật
-            </h2>
-            <p className="text-gray-600 text-sm md:text-base">
-              Những sản phẩm được yêu thích nhất
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-            {featuredProducts.map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="group bg-white rounded-2xl shadow-lg overflow-hidden"
-              >
-                <div className="relative h-48 md:h-64">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  {product.discount && (
-                    <div className="absolute top-3 md:top-4 left-3 md:left-4 bg-[#B86B2B] text-white px-2 md:px-3 py-1 rounded-full text-xs md:text-sm">
-                      -{product.discount}%
-                    </div>
-                  )}
-                  <div className="absolute top-3 md:top-4 right-3 md:right-4 flex flex-col gap-2">
-                    <button className="p-1.5 md:p-2 bg-white rounded-full shadow-md hover:bg-[#B86B2B] hover:text-white transition-colors duration-300">
-                      <FaHeart className="text-sm md:text-base" />
-                    </button>
-                    <button className="p-1.5 md:p-2 bg-white rounded-full shadow-md hover:bg-[#B86B2B] hover:text-white transition-colors duration-300">
-                      <FaShoppingCart className="text-sm md:text-base" />
-                    </button>
-                  </div>
-                </div>
-                <div className="p-4 md:p-6">
-                  <div className="flex items-center mb-2">
-                    <div className="flex text-[#FFD600]">
-                      {[...Array(5)].map((_, i) => (
-                        <FaStar
-                          key={i}
-                          className={`text-sm md:text-base ${
-                            i < Math.floor(product.rating)
-                              ? 'fill-current'
-                              : 'fill-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="ml-2 text-xs md:text-sm text-gray-600">
-                      ({product.rating})
-                    </span>
-                  </div>
-                  <h3 className="text-base md:text-lg font-semibold text-[#7A5C3E] mb-2">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg md:text-xl font-bold text-[#B86B2B]">
-                      {product.price}
-                    </span>
-                    <Link
-                      href={`/products/${product.id}`}
-                      className="text-[#B86B2B] hover:text-[#E6A15A] transition-colors duration-300 text-sm md:text-base"
-                    >
-                      Chi tiết
-                    </Link>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FeaturedProducts />
 
       {/* Brands Section */}
-      <section className="py-12 md:py-20 bg-gray-50">
+      {/* <section className="py-12 md:py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -322,12 +170,38 @@ const HomeView = () => {
               Thương hiệu nổi bật
             </h2>
             <p className="text-gray-600 text-sm md:text-base">
-              Hợp tác với các thương hiệu uy tín hàng đầu
+              Hợp tác với các thương hiệu gia dụng uy tín hàng đầu
             </p>
           </motion.div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-8">
-            {brands.map((brand, index) => (
+            {[
+              {
+                id: 1,
+                name: 'Panasonic',
+                logo: 'https://cdn.tgdd.vn/brandlogo/2016/panasonic-220x48-1.png',
+              },
+              {
+                id: 2,
+                name: 'Electrolux',
+                logo: 'https://cdn.tgdd.vn/brandlogo/2016/electrolux-220x48-1.png',
+              },
+              {
+                id: 3,
+                name: 'Sharp',
+                logo: 'https://cdn.tgdd.vn/brandlogo/2016/sharp-220x48-1.png',
+              },
+              {
+                id: 4,
+                name: 'Samsung',
+                logo: 'https://cdn.tgdd.vn/brandlogo/2016/samsung-220x48-1.png',
+              },
+              {
+                id: 5,
+                name: 'LG',
+                logo: 'https://cdn.tgdd.vn/brandlogo/2016/lg-220x48-1.png',
+              },
+            ].map((brand, index) => (
               <motion.div
                 key={brand.id}
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -348,7 +222,7 @@ const HomeView = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Features Section */}
       <section className="py-12 md:py-20">

@@ -14,6 +14,10 @@ import {
   FaTimes,
   FaBars,
   FaChevronDown,
+  FaUser,
+  FaBox,
+  FaSignOutAlt,
+  FaWallet,
 } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
@@ -30,7 +34,7 @@ const Header = () => {
   const handleSignOut = async () => {
     await signOut({ redirect: false });
     toast.success('Đăng xuất thành công');
-    router.push('/dang-nhap');
+    window.location.reload();
   };
 
   return (
@@ -56,11 +60,8 @@ const Header = () => {
               >
                 Về chúng tôi
               </Link>
-              <Link href="/contact" className="hover:text-[#FFD600] transition">
+              <Link href="/lien-he" className="hover:text-[#FFD600] transition">
                 Liên hệ
-              </Link>
-              <Link href="/support" className="hover:text-[#FFD600] transition">
-                Hỗ trợ
               </Link>
             </div>
           </div>
@@ -101,7 +102,7 @@ const Header = () => {
 
             {/* Right Section */}
             <div className="flex items-center space-x-6">
-              <Link href="/cart" className="relative group">
+              <Link href="/gio-hang" className="relative group">
                 <FaCartPlus
                   size={24}
                   className="text-[#7A5C3E] group-hover:text-[#B86B2B] transition"
@@ -114,53 +115,80 @@ const Header = () => {
                 <>
                   <div className="relative">
                     <button
-                      className="group flex items-center space-x-1 focus:outline-none"
+                      className="group flex items-center space-x-2 focus:outline-none"
                       onClick={() => setIsProfileDropdownOpen((v) => !v)}
                     >
-                      <FaUserCircle
-                        size={24}
-                        className="text-[#7A5C3E] group-hover:text-[#B86B2B] transition"
-                      />
+                      <div className="relative w-8 h-8 rounded-full bg-[#F5E9DA] flex items-center justify-center overflow-hidden">
+                        {session.user?.avatar ? (
+                          <Image
+                            src={session.user.avatar}
+                            alt={session.user.name || 'User avatar'}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <FaUserCircle
+                            size={24}
+                            className="text-[#7A5C3E] group-hover:text-[#B86B2B] transition"
+                          />
+                        )}
+                      </div>
                       <FaChevronDown
-                        size={16}
-                        className={`text-[#7A5C3E] group-hover:text-[#B86B2B] transition-transform duration-200 ${
+                        size={14}
+                        className={`text-[#7A5C3E] group-hover:text-[#B86B2B] transition-transform duration-300 ${
                           isProfileDropdownOpen ? 'rotate-180' : ''
                         }`}
                       />
                     </button>
                     {isProfileDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-[#E5E3DF]">
-                        <div className="px-4 py-2 border-b border-[#E5E3DF]">
-                          <p className="text-sm font-medium text-[#7A5C3E]">
+                      <div className="absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-lg py-2 z-50 border border-[#E5E3DF] transform origin-top-right transition-all duration-200 ease-out">
+                        <div className="px-4 py-3 border-b border-[#E5E3DF]">
+                          <p className="text-sm font-semibold text-[#7A5C3E]">
                             {session.user?.name}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 mt-0.5">
                             {session.user?.email}
                           </p>
                         </div>
-                        <Link
-                          href="/profile"
-                          className="block px-4 py-2 text-[#7A5C3E] hover:bg-[#F5E9DA] rounded transition"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                        >
-                          Trang cá nhân
-                        </Link>
-                        <Link
-                          href="/admin/products"
-                          className="block px-4 py-2 text-[#B86B2B] hover:bg-[#F5E9DA] rounded transition"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                        >
-                          Quản lý sản phẩm
-                        </Link>
-                        <button
-                          className="block w-full text-left px-4 py-2 text-red-500 hover:bg-[#F5E9DA] rounded transition"
-                          onClick={() => {
-                            setIsProfileDropdownOpen(false);
-                            handleSignOut();
-                          }}
-                        >
-                          Đăng xuất
-                        </button>
+                        <div className="py-1">
+                          <Link
+                            href="/profile"
+                            className="flex items-center px-4 py-2.5 text-[#7A5C3E] hover:bg-[#F5E9DA] transition-colors duration-200"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            <FaUser className="mr-3 text-[#B86B2B]" size={16} />
+                            <span>Trang cá nhân</span>
+                          </Link>
+                          <Link
+                            href="/cua-hang"
+                            className="flex items-center px-4 py-2.5 text-[#7A5C3E] hover:bg-[#F5E9DA] transition-colors duration-200"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            <FaBox className="mr-3 text-[#B86B2B]" size={16} />
+                            <span>Quản lý sản phẩm</span>
+                          </Link>
+                          <Link
+                            href="/quan-ly-vi-tien"
+                            className="flex items-center px-4 py-2.5 text-[#7A5C3E] hover:bg-[#F5E9DA] transition-colors duration-200"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            <FaWallet
+                              className="mr-3 text-[#B86B2B]"
+                              size={16}
+                            />
+                            <span>Quản lý ví tiền</span>
+                          </Link>
+                          <button
+                            className="flex items-center w-full px-4 py-2.5 text-red-500 hover:bg-red-50 transition-colors duration-200"
+                            onClick={() => {
+                              setIsProfileDropdownOpen(false);
+                              handleSignOut();
+                            }}
+                          >
+                            <FaSignOutAlt className="mr-3" size={16} />
+                            <span>Đăng xuất</span>
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -340,22 +368,12 @@ const Header = () => {
                             <span className="absolute inset-0 bg-[#B86B2B]/0 group-hover:bg-[#B86B2B]/5 rounded-lg transition-all duration-300"></span>
                           </Link>
                           <Link
-                            href="/contact"
+                            href="/lien-he"
                             className="group relative px-4 py-3 rounded-lg transition-all duration-300 hover:bg-[#B86B2B]/5"
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
                             <span className="relative z-10 text-[#7A5C3E] group-hover:text-[#B86B2B] font-medium transition-colors duration-300">
                               Liên hệ
-                            </span>
-                            <span className="absolute inset-0 bg-[#B86B2B]/0 group-hover:bg-[#B86B2B]/5 rounded-lg transition-all duration-300"></span>
-                          </Link>
-                          <Link
-                            href="/support"
-                            className="group relative px-4 py-3 rounded-lg transition-all duration-300 hover:bg-[#B86B2B]/5"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <span className="relative z-10 text-[#7A5C3E] group-hover:text-[#B86B2B] font-medium transition-colors duration-300">
-                              Hỗ trợ
                             </span>
                             <span className="absolute inset-0 bg-[#B86B2B]/0 group-hover:bg-[#B86B2B]/5 rounded-lg transition-all duration-300"></span>
                           </Link>

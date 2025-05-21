@@ -94,6 +94,7 @@ const NotExistStore = () => {
 
       toast.success('Tạo cửa hàng thành công!');
       router.push('/cua-hang');
+      window.location.reload(); // Force a complete page refresh
     } catch (error: any) {
       toast.error(error.message);
     } finally {

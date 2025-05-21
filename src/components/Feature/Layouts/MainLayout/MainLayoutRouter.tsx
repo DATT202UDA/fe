@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import Footer from '../Footer';
 import Header from '../Header';
 import { redirect } from 'next/navigation';
+import ModernLoader from '@/components/Common/ModernLoader';
 
 interface Props {
   children: React.ReactNode;
@@ -11,6 +12,10 @@ interface Props {
 
 export const MainLayoutRouter: React.FC<Props> = ({ children }) => {
   const session = useSession();
+
+  if (session.status === 'loading') {
+    return <ModernLoader />;
+  }
 
   if (session.status === 'unauthenticated') {
     redirect('/dang-nhap');
