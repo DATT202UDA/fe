@@ -87,7 +87,7 @@ const SignupView = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FDFBF8] to-white py-12">
+    <div className="min-h-screen bg-gradient-to-b from-[#FDFBF8] to-white py-20">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Left side - Form */}
@@ -256,7 +256,7 @@ const SignupView = () => {
               <p className="text-center text-gray-600">
                 Đã có tài khoản?{' '}
                 <Link
-                  href="/login"
+                  href="/dang-nhap"
                   className="text-[#E6A15A] hover:text-[#B86B2B] font-semibold"
                 >
                   Đăng nhập
