@@ -94,7 +94,7 @@ const SignupView = () => {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-2xl shadow-lg p-8"
+            className="bg-white rounded-2xl shadow-lg p-8 h-[600px] overflow-y-auto"
           >
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-[#B86B2B] mb-2">

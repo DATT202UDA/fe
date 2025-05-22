@@ -97,7 +97,7 @@ export const LoginForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F8F6F3] via-[#F3F4F6] to-[#ECE9E6] py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-start justify-center bg-gradient-to-br from-[#F8F6F3] via-[#F3F4F6] to-[#ECE9E6] pt-20 pb-20 px-4 sm:px-6 lg:px-8">
       <motion.div
         initial="hidden"
         animate="visible"
