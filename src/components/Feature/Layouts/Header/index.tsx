@@ -37,6 +37,13 @@ const Header = () => {
     window.location.reload();
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) {
+      router.push(`/san-pham?search=${encodeURIComponent(search.trim())}`);
+    }
+  };
+
   return (
     <header className="w-full bg-white shadow-sm">
       {/* Top Bar */}
@@ -86,7 +93,7 @@ const Header = () => {
 
             {/* Search Bar - Hidden on Mobile */}
             <div className="hidden md:flex flex-1 max-w-2xl mx-8">
-              <div className="relative w-full">
+              <form onSubmit={handleSearch} className="relative w-full">
                 <input
                   type="text"
                   className="w-full px-4 py-3 rounded-full border border-[#E5E3DF] focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 outline-none transition"
@@ -94,10 +101,13 @@ const Header = () => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A5C3E] hover:text-[#B86B2B] transition">
+                <button 
+                  type="submit"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A5C3E] hover:text-[#B86B2B] transition"
+                >
                   <FaSearch size={20} />
                 </button>
-              </div>
+              </form>
             </div>
 
             {/* Right Section */}
@@ -300,7 +310,7 @@ const Header = () => {
 
                       {/* Mobile Search */}
                       <div className="px-4 py-4 border-b border-[#E5E3DF]">
-                        <div className="relative group">
+                        <form onSubmit={handleSearch} className="relative group">
                           <input
                             type="text"
                             className="w-full px-4 py-3 rounded-full border border-[#E5E3DF] focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 outline-none transition-all duration-300 group-hover:border-[#B86B2B]/50"
@@ -308,10 +318,13 @@ const Header = () => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                           />
-                          <button className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A5C3E] hover:text-[#B86B2B] transition-all duration-300 hover:scale-110">
+                          <button 
+                            type="submit"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A5C3E] hover:text-[#B86B2B] transition-all duration-300 hover:scale-110"
+                          >
                             <FaSearch size={20} />
                           </button>
-                        </div>
+                        </form>
                       </div>
 
                       {/* Mobile Navigation */}

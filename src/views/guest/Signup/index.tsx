@@ -274,7 +274,7 @@ const SignupView = () => {
           >
             <div className="relative h-[600px] rounded-2xl overflow-hidden">
               <Image
-                src="/images/register.png"
+                src="/images/registerr.png"
                 alt="Đăng ký tài khoản"
                 fill
                 className="object-cover"

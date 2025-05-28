@@ -38,12 +38,15 @@ class ProductService {
   static async findAll(
     page = 1,
     limit = 10,
-  ): Promise<{ data: Product[]; total: number }> {
+    minPrice?: number,
+    maxPrice?: number,
+    sort?: string,
+    categoryId?: string,
+    search?: string
+  ): Promise<{ products: Product[]; pagination: { total: number; page: number; limit: number; totalPages: number } }> {
     const res = await axiosInstance.get('/products', {
-      params: { page, limit },
+      params: { page, limit, minPrice, maxPrice, sort, categoryId, search },
     });
-
-    console.log(res.data, 'huhuhu');
     return res.data;
   }
 

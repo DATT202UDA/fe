@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import {
   FiShoppingCart,
@@ -13,81 +14,68 @@ import {
   FiCheckCircle,
   FiMinus,
   FiPlus,
+  FiMapPin,
+  FiPhone,
+  FiMail,
 } from 'react-icons/fi';
-
-interface ProductDetail {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice: number;
-  discount: number;
-  rating: number;
-  reviewCount: number;
-  description: string;
-  images: string[];
-  specifications: {
-    brand: string;
-    model: string;
-    warranty: string;
-    origin: string;
-    power: string;
-    size: string;
-    color: string;
-  };
-  features: string[];
-}
+import ProductService, { Product } from '@/services/ProductService';
+import ShopService, { StoreData } from '@/services/ShopService';
+import { toast } from 'react-hot-toast';
 
 const ProductDetailPage = () => {
+  const { id } = useParams();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [store, setStore] = useState<StoreData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlist, setIsWishlist] = useState(false);
 
-  const product: ProductDetail = {
-    id: '1',
-    name: 'Máy hút bụi thông minh Robot Vacuum Cleaner',
-    price: 2500000,
-    originalPrice: 3000000,
-    discount: 17,
-    rating: 4.8,
-    reviewCount: 128,
-    description:
-      'Máy hút bụi thông minh với công nghệ laser mapping, tự động lập bản đồ và làm sạch hiệu quả. Tích hợp ứng dụng điều khiển qua điện thoại, lên lịch dọn dẹp tự động và theo dõi quá trình làm sạch.',
-    images: [
-      '/images/products/vacuum-1.jpg',
-      '/images/products/vacuum-2.jpg',
-      '/images/products/vacuum-3.jpg',
-      '/images/products/vacuum-4.jpg',
-    ],
-    specifications: {
-      brand: 'SmartHome',
-      model: 'VC-2000',
-      warranty: '12 tháng',
-      origin: 'Hàn Quốc',
-      power: '2200W',
-      size: '35 x 35 x 10 cm',
-      color: 'Đen/Trắng',
-    },
-    features: [
-      'Công nghệ laser mapping chính xác',
-      'Điều khiển qua ứng dụng di động',
-      'Lên lịch dọn dẹp tự động',
-      'Tự động quay về sạc',
-      'Chế độ làm sạch thông minh',
-      'Bộ lọc HEPA cao cấp',
-    ],
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const productData = await ProductService.findOne(id as string);
+        setProduct(productData);
+        console.log("productData", productData);
+        
+        // Fetch store information
+        if (productData.store_id) {
+          const storeData = await ShopService.getStoreById(productData.store_id);
+          setStore(storeData);
+        }
+      } catch (error) {
+        toast.error('Không tìm thấy sản phẩm!');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchData();
+  }, [id]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) =>
+    amount?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
 
   const handleQuantityChange = (value: number) => {
     if (value < 1) return;
     setQuantity(value);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E6A15A]" />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Sản phẩm không tồn tại hoặc đã bị xóa.
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F5E9DA]/30 to-white py-8">
@@ -98,15 +86,16 @@ const ProductDetailPage = () => {
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-[#E5E3DF]">
               <div className="relative aspect-square rounded-xl overflow-hidden">
                 <Image
-                  src={product.images[selectedImage]}
+                  src={product.image_url || '/images/placeholder.jpg'}
                   alt={product.name}
                   fill
                   className="object-contain"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-4">
-              {product.images.map((image, index) => (
+            {/* Nếu có nhiều ảnh, hiển thị thumbnail */}
+            {/* <div className="grid grid-cols-4 gap-4">
+              {[product.image_url].map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
@@ -124,7 +113,7 @@ const ProductDetailPage = () => {
                   />
                 </button>
               ))}
-            </div>
+            </div> */}
           </div>
 
           {/* Product Info */}
@@ -138,11 +127,11 @@ const ProductDetailPage = () => {
                 <div className="flex items-center gap-1 text-yellow-400">
                   <FiStar className="w-5 h-5 fill-current" />
                   <span className="font-medium text-[#7A5C3E]">
-                    {product.rating}
+                    4.8
                   </span>
                 </div>
                 <span className="text-gray-500">
-                  ({product.reviewCount} đánh giá)
+                  (128 đánh giá)
                 </span>
               </div>
 
@@ -151,12 +140,13 @@ const ProductDetailPage = () => {
                   <span className="text-3xl font-bold text-[#B86B2B]">
                     {formatCurrency(product.price)}
                   </span>
-                  <span className="text-lg text-gray-500 line-through">
+                  {/* Nếu có giá gốc và giảm giá */}
+                  {/* <span className="text-lg text-gray-500 line-through">
                     {formatCurrency(product.originalPrice)}
                   </span>
                   <span className="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-sm font-medium">
-                    -{product.discount}%
-                  </span>
+                    -17%
+                  </span> */}
                 </div>
               </div>
 
@@ -168,7 +158,7 @@ const ProductDetailPage = () => {
                 <div className="flex items-center gap-3 text-gray-600">
                   <FiShield className="w-5 h-5 text-[#B86B2B]" />
                   <span>
-                    Bảo hành chính hãng {product.specifications.warranty}
+                    Bảo hành chính hãng 12 tháng
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-600">
@@ -213,12 +203,62 @@ const ProductDetailPage = () => {
                   </button>
                 </div>
 
-                <button className="w-full bg-[#B86B2B] text-white py-4 rounded-xl hover:bg-[#E6A15A] transition-colors font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                  <FiShoppingCart className="w-5 h-5" />
-                  Thêm vào giỏ hàng
-                </button>
+                <div className="flex gap-4">
+                  <button className="flex-1 bg-[#B86B2B] text-white py-4 rounded-xl hover:bg-[#E6A15A] transition-colors font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                    <FiShoppingCart className="w-5 h-5" />
+                    Thêm vào giỏ hàng
+                  </button>
+                  <button className="flex-1 bg-[#7A5C3E] text-white py-4 rounded-xl hover:bg-[#9B7B5C] transition-colors font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                    Mua ngay
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Store Information */}
+            {store && (
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-[#E5E3DF]">
+                <h2 className="text-xl font-bold text-[#7A5C3E] mb-4">
+                  Thông tin cửa hàng
+                </h2>
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="relative w-16 h-16 rounded-full overflow-hidden">
+                    <Image
+                      src={store.image_url || '/images/store-placeholder.jpg'}
+                      alt={store.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#7A5C3E]">
+                      {store.name}
+                    </h3>
+                    <div className="flex items-center gap-1 text-yellow-400">
+                      <FiStar className="w-4 h-4 fill-current" />
+                      <span className="text-sm text-gray-600">
+                        {store.rate_avg.toFixed(1)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-gray-600">
+                    <FiMapPin className="w-5 h-5 text-[#B86B2B]" />
+                    <span>{store.address}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-gray-600">
+                    <FiPhone className="w-5 h-5 text-[#B86B2B]" />
+                    <span>{store.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-gray-600">
+                    <FiMail className="w-5 h-5 text-[#B86B2B]" />
+                    <span>{store.email}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Product Description */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-[#E5E3DF]">
@@ -227,7 +267,8 @@ const ProductDetailPage = () => {
               </h2>
               <p className="text-gray-600 mb-6">{product.description}</p>
 
-              <h3 className="text-lg font-bold text-[#7A5C3E] mb-4">
+              {/* Nếu có thông số kỹ thuật */}
+              {/* <h3 className="text-lg font-bold text-[#7A5C3E] mb-4">
                 Thông số kỹ thuật
               </h3>
               <div className="grid grid-cols-2 gap-4 mb-6">
@@ -239,19 +280,7 @@ const ProductDetailPage = () => {
                     </span>
                   </div>
                 ))}
-              </div>
-
-              <h3 className="text-lg font-bold text-[#7A5C3E] mb-4">
-                Tính năng nổi bật
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                {product.features.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <FiCheckCircle className="w-4 h-4 text-[#B86B2B]" />
-                    <span className="text-gray-600">{feature}</span>
-                  </div>
-                ))}
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

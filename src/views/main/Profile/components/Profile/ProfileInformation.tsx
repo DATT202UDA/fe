@@ -1,30 +1,81 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { FiEdit2, FiUser, FiMail, FiPhone, FiCalendar } from 'react-icons/fi';
+import { FiEdit2, FiUser, FiMail, FiPhone, FiCalendar, FiMapPin, FiFacebook, FiInstagram } from 'react-icons/fi';
+import { useSession } from 'next-auth/react';
+import ProfileService, { UserProfile } from '@/services/ProfileService';
 
-interface UserProfile {
-  fullName: string;
-  email: string;
-  phone: string;
-  avatar: string;
-  joinDate: string;
+interface CustomSession {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    accessToken: string;
+    refreshToken: string;
+    role: string;
+  };
 }
 
+const formatDate = (dateString: string) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+};
+
 export const ProfileInformation = () => {
+  const { data: session } = useSession() as { data: CustomSession | null };
   const [profile, setProfile] = useState<UserProfile>({
-    fullName: 'Nguyễn Văn A',
-    email: 'nguyenvana@example.com',
-    phone: '0123 456 789',
-    avatar: '/images/profile.png',
-    joinDate: '01/01/2024',
+    username: '',
+    fullName: '',
+    email: '',
+    phone: '',
+    avatar: '',
+    address: '',
+    zalo: '',
+    facebook: '',
+    gender: '',
+    school: '',
+    joinDate: '',
+    totalOrders: 0,
+    wishlistItems: 0,
+    savedAddresses: 0,
+    savedCards: 0,
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    if (session?.user?.accessToken) {
+      fetchUserProfile();
+    }
+  }, [session]);
+
+  const fetchUserProfile = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const userData = await ProfileService.getProfile();
+      setProfile(userData);
+      setEditedProfile(userData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch profile data');
+      console.error('Error fetching profile:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setEditedProfile((prev) => ({
       ...prev,
@@ -32,11 +83,57 @@ export const ProfileInformation = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfile(editedProfile);
-    setIsEditing(false);
+    try {
+      const updatedProfile = await ProfileService.updateProfile({
+        username: editedProfile.username,
+        full_name: editedProfile.fullName,
+        email: editedProfile.email,
+        phone: editedProfile.phone,
+        address: editedProfile.address,
+        zalo: editedProfile.zalo,
+        facebook: editedProfile.facebook,
+        gender: editedProfile.gender,
+        school: editedProfile.school,
+      });
+      setProfile(updatedProfile);
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
+    }
   };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const updatedProfile = await ProfileService.uploadAvatar(file);
+      setProfile(updatedProfile);
+      setEditedProfile(updatedProfile);
+    } catch (err) {
+      console.error('Error uploading avatar:', err);
+      setError(err instanceof Error ? err.message : 'Failed to upload avatar');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F5E9DA]/30 flex items-center justify-center">
+        <div className="text-[#B86B2B] text-xl">Đang tải thông tin...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#F5E9DA]/30 flex items-center justify-center">
+        <div className="text-red-500 text-xl">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F5E9DA]/30 to-white">
@@ -48,16 +145,22 @@ export const ProfileInformation = () => {
               <div className="relative mb-6">
                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#B86B2B] shadow-lg">
                   <Image
-                    src={profile.avatar}
+                    src={profile.avatar || '/images/default-avatar.png'}
                     alt="Profile"
                     width={128}
                     height={128}
                     className="object-cover"
                   />
                 </div>
-                <button className="absolute bottom-0 right-0 bg-[#B86B2B] text-white p-2 rounded-full hover:bg-[#E6A15A] transition-colors shadow-md">
+                <label className="absolute bottom-0 right-0 bg-[#B86B2B] text-white p-2 rounded-full hover:bg-[#E6A15A] transition-colors shadow-md cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
                   <FiEdit2 className="w-4 h-4" />
-                </button>
+                </label>
               </div>
 
               <h2 className="text-2xl font-bold text-[#7A5C3E] mb-2">
@@ -65,7 +168,7 @@ export const ProfileInformation = () => {
               </h2>
               <p className="text-gray-600 flex items-center gap-2">
                 <FiCalendar className="w-4 h-4" />
-                Thành viên từ {profile.joinDate}
+                Thành viên từ {formatDate(profile.joinDate)}
               </p>
             </div>
           </div>
@@ -87,7 +190,22 @@ export const ProfileInformation = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <FiUser className="w-4 h-4 text-[#B86B2B]" />
+                    Tên đăng nhập
+                  </label>
+                  <input
+                    type="text"
+                    name="username"
+                    value={isEditing ? editedProfile.username : profile.username}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <FiUser className="w-4 h-4 text-[#B86B2B]" />
@@ -96,9 +214,7 @@ export const ProfileInformation = () => {
                   <input
                     type="text"
                     name="fullName"
-                    value={
-                      isEditing ? editedProfile.fullName : profile.fullName
-                    }
+                    value={isEditing ? editedProfile.fullName : profile.fullName}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
@@ -129,6 +245,85 @@ export const ProfileInformation = () => {
                     type="tel"
                     name="phone"
                     value={isEditing ? editedProfile.phone : profile.phone}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <FiMapPin className="w-4 h-4 text-[#B86B2B]" />
+                    Địa chỉ
+                  </label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={isEditing ? editedProfile.address : profile.address}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <FiFacebook className="w-4 h-4 text-[#B86B2B]" />
+                    Facebook
+                  </label>
+                  <input
+                    type="text"
+                    name="facebook"
+                    value={isEditing ? editedProfile.facebook : profile.facebook}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <FiInstagram className="w-4 h-4 text-[#B86B2B]" />
+                    Zalo
+                  </label>
+                  <input
+                    type="text"
+                    name="zalo"
+                    value={isEditing ? editedProfile.zalo : profile.zalo}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <FiUser className="w-4 h-4 text-[#B86B2B]" />
+                    Giới tính
+                  </label>
+                  <select
+                    name="gender"
+                    value={isEditing ? editedProfile.gender : profile.gender}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
+                  >
+                    <option value="">Chọn giới tính</option>
+                    <option value="male">Nam</option>
+                    <option value="female">Nữ</option>
+                    <option value="other">Khác</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <FiUser className="w-4 h-4 text-[#B86B2B]" />
+                    Trường học
+                  </label>
+                  <input
+                    type="text"
+                    name="school"
+                    value={isEditing ? editedProfile.school : profile.school}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
