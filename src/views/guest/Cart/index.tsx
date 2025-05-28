@@ -10,7 +10,9 @@ import {
   FiCreditCard,
   FiTruck,
   FiShield,
+  FiCheck,
 } from 'react-icons/fi';
+import { toast } from 'react-hot-toast';
 
 interface CartItem {
   id: string;
@@ -19,6 +21,7 @@ interface CartItem {
   quantity: number;
   image: string;
   category: string;
+  selected: boolean;
 }
 
 const CartView = () => {
@@ -30,6 +33,7 @@ const CartView = () => {
       quantity: 1,
       image: '/images/products/vacuum.jpg',
       category: 'Đồ gia dụng',
+      selected: false,
     },
     {
       id: '2',
@@ -38,8 +42,11 @@ const CartView = () => {
       quantity: 1,
       image: '/images/products/rice-cooker.jpg',
       category: 'Đồ gia dụng',
+      selected: false,
     },
   ]);
+
+  const [showQR, setShowQR] = useState(false);
 
   const updateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity < 1) return;
@@ -52,6 +59,22 @@ const CartView = () => {
 
   const removeItem = (id: string) => {
     setCartItems(cartItems.filter((item) => item.id !== id));
+    toast.success('Đã xóa sản phẩm khỏi giỏ hàng');
+  };
+
+  const toggleSelectItem = (id: string) => {
+    setCartItems(
+      cartItems.map((item) =>
+        item.id === id ? { ...item, selected: !item.selected } : item,
+      ),
+    );
+  };
+
+  const toggleSelectAll = () => {
+    const allSelected = cartItems.every((item) => item.selected);
+    setCartItems(
+      cartItems.map((item) => ({ ...item, selected: !allSelected })),
+    );
   };
 
   const formatCurrency = (amount: number) => {
@@ -61,12 +84,27 @@ const CartView = () => {
     }).format(amount);
   };
 
-  const subtotal = cartItems.reduce(
+  const selectedItems = cartItems.filter((item) => item.selected);
+  const subtotal = selectedItems.reduce(
     (total, item) => total + item.price * item.quantity,
     0,
   );
-  const shipping = 30000;
+  const shipping = selectedItems.length > 0 ? 30000 : 0;
   const total = subtotal + shipping;
+
+  const handleCheckout = () => {
+    if (selectedItems.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một sản phẩm');
+      return;
+    }
+    setShowQR(true);
+  };
+
+  const handleComplete = () => {
+    setShowQR(false);
+    setCartItems(cartItems.filter((item) => !item.selected));
+    toast.success('Thanh toán thành công!');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F5E9DA]/30 to-white py-8">
@@ -89,11 +127,27 @@ const CartView = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
+                  <div className="flex items-center gap-4 p-4 bg-[#F8F6F3] rounded-lg">
+                    <input
+                      type="checkbox"
+                      checked={cartItems.every((item) => item.selected)}
+                      onChange={toggleSelectAll}
+                      className="h-5 w-5 text-[#E6A15A] focus:ring-[#E6A15A] border-[#E5E3DF] rounded"
+                    />
+                    <span className="text-[#7A5C3E]">Chọn tất cả</span>
+                  </div>
+
                   {cartItems.map((item) => (
                     <div
                       key={item.id}
                       className="flex items-center gap-6 p-4 border-2 border-[#E5E3DF] rounded-xl hover:shadow-md transition-shadow"
                     >
+                      <input
+                        type="checkbox"
+                        checked={item.selected}
+                        onChange={() => toggleSelectItem(item.id)}
+                        className="h-5 w-5 text-[#E6A15A] focus:ring-[#E6A15A] border-[#E5E3DF] rounded"
+                      />
                       <div className="w-24 h-24 bg-[#F5E9DA] rounded-lg flex items-center justify-center flex-shrink-0">
                         <Image
                           src={item.image}
@@ -162,7 +216,7 @@ const CartView = () => {
 
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-gray-600">
-                  <span>Tạm tính</span>
+                  <span>Sản phẩm đã chọn ({selectedItems.length})</span>
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
@@ -175,7 +229,15 @@ const CartView = () => {
                 </div>
               </div>
 
-              <button className="w-full bg-[#B86B2B] text-white py-4 rounded-xl hover:bg-[#E6A15A] transition-colors font-medium shadow-md hover:shadow-lg mb-4 flex items-center justify-center gap-2">
+              <button
+                onClick={handleCheckout}
+                disabled={selectedItems.length === 0}
+                className={`w-full py-4 rounded-xl font-medium shadow-md hover:shadow-lg mb-4 flex items-center justify-center gap-2 transition-all ${
+                  selectedItems.length === 0
+                    ? 'bg-gray-300 cursor-not-allowed'
+                    : 'bg-[#B86B2B] text-white hover:bg-[#E6A15A]'
+                }`}
+              >
                 <FiCreditCard className="w-5 h-5" />
                 Thanh toán ngay
               </button>
@@ -183,19 +245,47 @@ const CartView = () => {
               <div className="space-y-4">
                 <div className="flex items-center gap-3 text-gray-600">
                   <FiTruck className="w-5 h-5 text-[#B86B2B]" />
-                  <span className="text-sm">
-                    Miễn phí vận chuyển cho đơn từ 2 triệu
-                  </span>
+                  <span>Miễn phí vận chuyển cho đơn từ 500.000đ</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-600">
                   <FiShield className="w-5 h-5 text-[#B86B2B]" />
-                  <span className="text-sm">Bảo hành chính hãng 12 tháng</span>
+                  <span>Bảo hành chính hãng 12 tháng</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      {showQR && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-2xl max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold text-[#B86B2B] mb-4">
+              Quét mã QR để thanh toán
+            </h2>
+            <div className="aspect-square w-full max-w-[300px] mx-auto bg-[#F5E9DA] rounded-xl mb-4 flex items-center justify-center">
+              {/* Replace with actual QR code */}
+              <div className="text-[#7A5C3E] text-center">
+                <div className="w-48 h-48 bg-white rounded-lg flex items-center justify-center mb-2">
+                  <span className="text-sm">QR Code Placeholder</span>
+                </div>
+                <p className="text-sm font-medium">{formatCurrency(total)}</p>
+              </div>
+            </div>
+            <p className="text-[#7A5C3E] text-center mb-6">
+              Vui lòng quét mã QR bằng ứng dụng ngân hàng của bạn để thanh toán
+            </p>
+            <button
+              onClick={handleComplete}
+              className="w-full bg-[#B86B2B] text-white py-4 rounded-xl hover:bg-[#E6A15A] transition-colors font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+            >
+              <FiCheck className="w-5 h-5" />
+              Hoàn thành
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
