@@ -27,15 +27,33 @@ import AddProductModal from './AddProductModal';
 import CategoryService, { Category } from '@/services/CategoryService';
 import ProductService, {
   Product as ProductType,
+  UpdateProductDto,
 } from '@/services/ProductService';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
 interface Product {
+  _id: string;
   name: string;
   price: string;
   image: string;
   categoryId: string;
   description?: string;
 }
+
+const productSchema = z.object({
+  name: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
+  price: z
+    .string()
+    .min(1, 'Giá sản phẩm là bắt buộc')
+    .refine((val) => !isNaN(Number(val)), 'Giá phải là số')
+    .refine((val) => Number(val) > 0, 'Giá phải lớn hơn 0'),
+  description: z.string().min(1, 'Mô tả sản phẩm là bắt buộc'),
+  image: z.any().optional(),
+});
+
+type ProductFormData = z.infer<typeof productSchema>;
 
 const StoreView = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -50,6 +68,16 @@ const StoreView = () => {
   const [products, setProducts] = useState<ProductType[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [isStoreSettingsOpen, setIsStoreSettingsOpen] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema),
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -92,6 +120,16 @@ const StoreView = () => {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    if (selectedProduct) {
+      reset({
+        name: selectedProduct.name,
+        price: selectedProduct.price.replace(/\./g, ''),
+        description: selectedProduct.description,
+      });
+    }
+  }, [selectedProduct, reset]);
+
   console.log(categories);
 
   if (isLoading) {
@@ -116,6 +154,7 @@ const StoreView = () => {
 
   const handleEdit = (product: ProductType) => {
     setSelectedProduct({
+      _id: product._id,
       name: product.name,
       price: product.price.toLocaleString('vi-VN'),
       image: product.image_url,
@@ -126,8 +165,57 @@ const StoreView = () => {
   };
 
   const handleDelete = (product: ProductType) => {
-    setSelectedProduct(null);
+    setSelectedProduct({
+      _id: product._id,
+      name: product.name,
+      price: product.price.toLocaleString('vi-VN'),
+      image: product.image_url,
+      categoryId: product.category_id || '',
+      description: product.description,
+    });
     setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!selectedProduct) return;
+    
+    try {
+      await ProductService.remove(selectedProduct._id);
+      setProducts(products.filter(p => p._id !== selectedProduct._id));
+      toast.success('Xóa sản phẩm thành công');
+      handleCloseModals();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Không thể xóa sản phẩm');
+    }
+  };
+
+  const handleUpdateProduct = async (data: ProductFormData) => {
+    if (!selectedProduct) return;
+
+    try {
+      const updateData: UpdateProductDto = {
+        name: data.name,
+        price: Number(data.price),
+        description: data.description || '',
+      };
+
+      // Upload new image if changed
+      if (data.image?.[0]) {
+        await ShopService.uploadImage(data.image[0]);
+      }
+
+      const updatedProduct = await ProductService.update(selectedProduct._id, updateData);
+      
+      // Update products list
+      setProducts(products.map(p => 
+        p._id === selectedProduct._id ? updatedProduct : p
+      ));
+
+      toast.success('Cập nhật sản phẩm thành công');
+      handleCloseModals();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Không thể cập nhật sản phẩm');
+    }
   };
 
   const handleAddProduct = () => {
@@ -143,7 +231,7 @@ const StoreView = () => {
 
   console.log(products, 'products');
 
-  const handleAddProductSubmit = async (product: Product) => {
+  const handleAddProductSubmit = async (data: ProductFormData) => {
     try {
       setIsAddingProduct(true);
       if (!shopInfo) {
@@ -152,16 +240,16 @@ const StoreView = () => {
       }
 
       // First upload the image
-      const uploadResult = await ShopService.uploadImage(product.image);
+      const uploadResult = await ShopService.uploadImage(data.image as File);
       const imageUrl = uploadResult.url;
 
       // Then create the product with the image URL
       const productData = {
-        name: product.name,
-        price: Number(product.price),
-        description: product.description || '',
+        name: data.name,
+        price: Number(data.price.replace(/\./g, '')),
+        description: data.description || '',
         store_id: shopInfo._id,
-        category_id: product.categoryId,
+        category_id: data.categoryId,
         status: 'active',
         image_url: imageUrl,
         user_id: shopInfo.user_id,
@@ -541,10 +629,7 @@ const StoreView = () => {
                   Hủy
                 </button>
                 <button
-                  onClick={() => {
-                    // Handle delete logic here
-                    handleCloseModals();
-                  }}
+                  onClick={handleDeleteProduct}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                 >
                   Xóa
@@ -581,28 +666,68 @@ const StoreView = () => {
                   <FaTimes />
                 </button>
               </div>
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={handleSubmit(handleUpdateProduct)}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Tên sản phẩm
                     </label>
-                    <input
-                      type="text"
+                    <Controller
+                      name="name"
+                      control={control}
                       defaultValue={selectedProduct.name}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
+                      render={({ field }) => (
+                        <input
+                          {...field}
+                          type="text"
+                          className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
+                        />
+                      )}
                     />
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Giá
                     </label>
-                    <input
-                      type="text"
+                    <Controller
+                      name="price"
+                      control={control}
                       defaultValue={selectedProduct.price}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
+                      render={({ field }) => (
+                        <input
+                          {...field}
+                          type="text"
+                          className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
+                        />
+                      )}
                     />
+                    {errors.price && (
+                      <p className="mt-1 text-sm text-red-500">{errors.price.message}</p>
+                    )}
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mô tả
+                  </label>
+                  <Controller
+                    name="description"
+                    control={control}
+                    defaultValue={selectedProduct.description}
+                    render={({ field }) => (
+                      <textarea
+                        {...field}
+                        rows={4}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
+                      />
+                    )}
+                  />
+                  {errors.description && (
+                    <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -617,8 +742,32 @@ const StoreView = () => {
                         className="object-cover"
                       />
                     </div>
+                    <Controller
+                      name="image"
+                      control={control}
+                      render={({ field: { value, onChange, ...field } }) => (
+                        <input
+                          {...field}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            onChange(e.target.files);
+                            if (e.target.files?.[0]) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setImagePreview(reader.result as string);
+                              };
+                              reader.readAsDataURL(e.target.files[0]);
+                            }
+                          }}
+                          className="hidden"
+                          id="image-upload"
+                        />
+                      )}
+                    />
                     <button
                       type="button"
+                      onClick={() => document.getElementById('image-upload')?.click()}
                       className="px-4 py-2 border border-gray-200 rounded-lg hover:border-[#E6A15A] hover:text-[#E6A15A] transition-colors"
                     >
                       Thay đổi ảnh

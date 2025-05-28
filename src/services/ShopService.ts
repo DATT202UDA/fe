@@ -182,6 +182,26 @@ class ShopService {
     }
   }
 
+  // Upload multiple images
+  static async uploadMultipleImages(files: File[]): Promise<{ urls: string[] }> {
+    try {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
+
+      const response = await axiosInstance.post('/upload/multiple', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error uploading images:', error);
+      throw new Error('Không thể tải lên ảnh');
+    }
+  }
+
   // Create store with image URL
   static async createStore(data: CreateStoreData): Promise<StoreData> {
     try {

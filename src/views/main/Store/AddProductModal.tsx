@@ -34,7 +34,7 @@ interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   categories: { id: string; name: string }[];
-  onSubmit?: (data: Product) => void;
+  onSubmit?: (data: ProductFormData) => void;
   isLoading?: boolean;
 }
 
@@ -88,12 +88,12 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       return;
     }
 
-    const productData: Product = {
+    const productData: ProductFormData = {
       name: data.name,
       price: data.price,
-      image: selectedFile,
       categoryId: data.categoryId,
-      description: data.description,
+      description: data.description || '',
+      image: selectedFile,
     };
     onSubmit?.(productData);
   };
