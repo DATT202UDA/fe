@@ -19,9 +19,10 @@ import {
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import ProductService, { Product } from '@/services/ProductService';
-import CategoryService, { Category } from '@/services/CategoryService';
+import CategoryService from '@/services/CategoryService';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Category } from '@/types/category';
 
 const ProductView = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');

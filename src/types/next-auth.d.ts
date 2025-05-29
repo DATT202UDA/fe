@@ -6,6 +6,8 @@ declare module 'next-auth' {
     id: string;
     username: string;
     email: string;
+    name?: string;
+    image?: string;
     accessToken: string;
     refreshToken: string;
     expiresIn: number;
@@ -22,6 +24,8 @@ declare module 'next-auth/jwt' {
     id: string;
     username: string;
     email: string;
+    name?: string;
+    image?: string;
     accessToken: string;
     refreshToken: string;
     exp: number;
