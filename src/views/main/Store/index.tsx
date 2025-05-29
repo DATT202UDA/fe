@@ -178,10 +178,10 @@ const StoreView = () => {
 
   const handleDeleteProduct = async () => {
     if (!selectedProduct) return;
-    
+
     try {
       await ProductService.remove(selectedProduct._id);
-      setProducts(products.filter(p => p._id !== selectedProduct._id));
+      setProducts(products.filter((p) => p._id !== selectedProduct._id));
       toast.success('Xóa sản phẩm thành công');
       handleCloseModals();
     } catch (error: any) {
@@ -204,17 +204,24 @@ const StoreView = () => {
         await ShopService.uploadImage(data.image[0]);
       }
 
-      const updatedProduct = await ProductService.update(selectedProduct._id, updateData);
-      
+      const updatedProduct = await ProductService.update(
+        selectedProduct._id,
+        updateData,
+      );
+
       // Update products list
-      setProducts(products.map(p => 
-        p._id === selectedProduct._id ? updatedProduct : p
-      ));
+      setProducts(
+        products.map((p) =>
+          p._id === selectedProduct._id ? updatedProduct : p,
+        ),
+      );
 
       toast.success('Cập nhật sản phẩm thành công');
       handleCloseModals();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Không thể cập nhật sản phẩm');
+      toast.error(
+        error?.response?.data?.message || 'Không thể cập nhật sản phẩm',
+      );
     }
   };
 
@@ -666,7 +673,10 @@ const StoreView = () => {
                   <FaTimes />
                 </button>
               </div>
-              <form className="space-y-4" onSubmit={handleSubmit(handleUpdateProduct)}>
+              <form
+                className="space-y-4"
+                onSubmit={handleSubmit(handleUpdateProduct)}
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -685,7 +695,9 @@ const StoreView = () => {
                       )}
                     />
                     {errors.name && (
-                      <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.name.message}
+                      </p>
                     )}
                   </div>
                   <div>
@@ -705,7 +717,9 @@ const StoreView = () => {
                       )}
                     />
                     {errors.price && (
-                      <p className="mt-1 text-sm text-red-500">{errors.price.message}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.price.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -726,7 +740,9 @@ const StoreView = () => {
                     )}
                   />
                   {errors.description && (
-                    <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.description.message}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -767,7 +783,9 @@ const StoreView = () => {
                     />
                     <button
                       type="button"
-                      onClick={() => document.getElementById('image-upload')?.click()}
+                      onClick={() =>
+                        document.getElementById('image-upload')?.click()
+                      }
                       className="px-4 py-2 border border-gray-200 rounded-lg hover:border-[#E6A15A] hover:text-[#E6A15A] transition-colors"
                     >
                       Thay đổi ảnh
