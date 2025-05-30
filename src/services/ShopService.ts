@@ -183,7 +183,9 @@ class ShopService {
   }
 
   // Upload multiple images
-  static async uploadMultipleImages(files: File[]): Promise<{ urls: string[] }> {
+  static async uploadMultipleImages(
+    files: File[],
+  ): Promise<{ urls: string[] }> {
     try {
       const formData = new FormData();
       files.forEach((file) => {

@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FaArrowRight } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
-import CategoryService, { Category } from '@/services/CategoryService';
-
+import CategoryService from '@/services/CategoryService';
+import { Category } from '@/types/category';
 const Categories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
