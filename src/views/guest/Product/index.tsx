@@ -23,6 +23,7 @@ import CategoryService from '@/services/CategoryService';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Category } from '@/types/category';
+import { useCart } from '@/contexts/CartContext';
 
 const ProductView = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -39,6 +40,7 @@ const ProductView = () => {
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const { addItem } = useCart();
 
   const fetchCategories = async () => {
     try {
@@ -81,7 +83,13 @@ const ProductView = () => {
     fetchProducts();
   }, [currentPage, sortBy, selectedCategory, searchQuery, priceRange, isPriceFilterEnabled]);
 
-  const handleAddToCart = (productId: string) => {
+  const handleAddToCart = (product: Product) => {
+    addItem({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.image_url,
+    });
     toast.success('Đã thêm vào giỏ hàng');
   };
 
@@ -258,20 +266,11 @@ const ProductView = () => {
                       />
                     </div>
 
-                    {/* Price Range Display */}
-                    <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded-lg">
-                      <span>Khoảng giá:</span>
-                      <span>
-                        {tempPriceRange[0].toLocaleString('vi-VN')}đ - {tempPriceRange[1].toLocaleString('vi-VN')}đ
-                      </span>
-                    </div>
-
-                    {/* Apply Filter Button */}
                     <button
                       onClick={handleApplyPriceFilter}
-                      className="w-full bg-[#E6A15A] text-white py-2 px-4 rounded-lg hover:bg-[#B86B2B] transition-colors"
+                      className="w-full bg-[#B86B2B] text-white py-2 rounded-lg hover:bg-[#E6A15A] transition-colors"
                     >
-                      Áp dụng bộ lọc
+                      Áp dụng
                     </button>
                   </div>
                 )}
@@ -279,116 +278,95 @@ const ProductView = () => {
             </div>
           </motion.div>
 
-          {/* Products Grid */}
+          {/* Product Grid */}
           <div className="lg:col-span-9">
-            {/* Sort and Filter */}
+            {/* Sort Options */}
             <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <select
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                  className="bg-transparent border border-gray-200 rounded-lg px-4 py-2 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
+                >
+                  <option value="newest">Mới nhất</option>
+                  <option value="price_asc">Giá tăng dần</option>
+                  <option value="price_desc">Giá giảm dần</option>
+                </select>
+              </div>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="flex items-center gap-2 text-gray-600 hover:text-[#E6A15A] transition-colors"
+                className="lg:hidden flex items-center gap-2 text-gray-600 hover:text-[#B86B2B] transition-colors"
               >
                 <FaFilter />
                 <span>Bộ lọc</span>
-                {isFilterOpen ? <FaChevronUp /> : <FaChevronDown />}
               </button>
-              <select
-                value={sortBy}
-                onChange={(e) => handleSortChange(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
-              >
-                <option value="newest">Mới nhất</option>
-                <option value="price_asc">Giá tăng dần</option>
-                <option value="price_desc">Giá giảm dần</option>
-              </select>
             </div>
 
             {/* Products */}
             {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E6A15A]"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, index) => (
+                  <div
+                    key={index}
+                    className="bg-white rounded-2xl shadow-sm p-4 animate-pulse"
+                  >
+                    <div className="aspect-square bg-gray-200 rounded-xl mb-4" />
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                    <div className="h-4 bg-gray-200 rounded w-1/2" />
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
-                  <Link
+                  <div
                     key={product._id}
-                    href={`/san-pham/${product._id}`}
-                    className="block"
-                    prefetch={false}
+                    className="bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow"
                   >
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-white rounded-2xl shadow-sm overflow-hidden group hover:shadow-lg transition-all duration-300"
-                    >
-                      <div className="relative pt-[100%]">
+                    <Link href={`/san-pham/${product._id}`}>
+                      <div className="relative aspect-square rounded-xl overflow-hidden mb-4">
                         <Image
-                          src={product.image_url || '/images/placeholder.jpg'}
+                          src={product.image_url}
                           alt={product.name}
                           fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                          className="object-cover hover:scale-105 transition-transform duration-300"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={(e) => { e.preventDefault(); handleAddToCart(product._id); }}
-                          className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white text-[#E6A15A] px-6 py-2 rounded-full font-semibold opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-2"
-                        >
-                          <FaShoppingCart />
-                          Thêm vào giỏ
-                        </motion.button>
                       </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-[#9B7B5C] text-lg mb-2 line-clamp-2">
-                          {product.name}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                          <span>
-                            {typeof product.store_id === 'object' 
-                              ? product.store_id.name 
-                              : 'Cửa hàng'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-[#E6A15A]">
-                            {product.price.toLocaleString('vi-VN')}đ
-                          </span>
-                          {product.status && (
-                            <span className={`text-sm px-2 py-1 rounded-full ${
-                              product.status === 'active' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {product.status === 'active' ? 'Còn hàng' : 'Hết hàng'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  </Link>
+                      <h3 className="text-lg font-semibold text-[#7A5C3E] mb-2 line-clamp-2">
+                        {product.name}
+                      </h3>
+                      <p className="text-[#B86B2B] font-medium mb-4">
+                        {product.price.toLocaleString('vi-VN')}đ
+                      </p>
+                    </Link>
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className="w-full bg-[#B86B2B] text-white py-2 rounded-lg hover:bg-[#E6A15A] transition-colors flex items-center justify-center gap-2"
+                    >
+                      <FaShoppingCart />
+                      Thêm vào giỏ
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-8 flex justify-center">
-                <div className="flex items-center gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`w-10 h-10 rounded-lg border ${
-                        currentPage === page
-                          ? 'border-[#E6A15A] text-[#E6A15A]'
-                          : 'border-gray-200 text-gray-500 hover:border-[#E6A15A] hover:text-[#E6A15A]'
-                      } flex items-center justify-center transition-colors`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
+              <div className="flex justify-center mt-8 gap-2">
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handlePageChange(index + 1)}
+                    className={`w-10 h-10 rounded-lg transition-colors ${
+                      currentPage === index + 1
+                        ? 'bg-[#B86B2B] text-white'
+                        : 'bg-white text-gray-600 hover:bg-[#F8F6F3]'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
               </div>
             )}
           </div>

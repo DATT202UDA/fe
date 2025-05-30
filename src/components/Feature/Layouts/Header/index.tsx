@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import {
@@ -22,6 +22,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
+import { useCart } from '@/contexts/CartContext';
 
 const Header = () => {
   const [selectedLocation, setSelectedLocation] = useState('Toàn Quốc');
@@ -30,6 +31,9 @@ const Header = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
+  const { items } = useCart();
+
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
@@ -118,7 +122,7 @@ const Header = () => {
                   className="text-[#7A5C3E] group-hover:text-[#B86B2B] transition"
                 />
                 <span className="absolute -top-2 -right-2 bg-[#B86B2B] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  0
+                  {totalQuantity}
                 </span>
               </Link>
               {session ? (

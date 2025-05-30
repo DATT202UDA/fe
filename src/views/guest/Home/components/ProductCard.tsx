@@ -1,8 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { FaHeart, FaShoppingCart } from 'react-icons/fa';
+import { FaHeart } from 'react-icons/fa';
 import { Product } from '@/services/ProductService';
+import { AddToCartButton } from '@/components/Common/AddToCartButton';
 
 interface ProductCardProps {
   product: Product;
@@ -17,9 +18,9 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       viewport={{ once: true }}
-      className="group bg-white rounded-2xl shadow-lg overflow-hidden"
+      className="group bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col"
     >
-      <div className="relative h-48 md:h-64">
+      <Link href={`/san-pham/${product._id}`} className="block relative h-48 md:h-64 w-full">
         <Image
           src={product.image_url}
           alt={product.name}
@@ -30,25 +31,34 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
           <button className="p-1.5 md:p-2 bg-white rounded-full shadow-md hover:bg-[#B86B2B] hover:text-white transition-colors duration-300">
             <FaHeart className="text-sm md:text-base" />
           </button>
-          <button className="p-1.5 md:p-2 bg-white rounded-full shadow-md hover:bg-[#B86B2B] hover:text-white transition-colors duration-300">
-            <FaShoppingCart className="text-sm md:text-base" />
-          </button>
         </div>
-      </div>
-      <div className="p-4 md:p-6">
-        <h3 className="text-base md:text-lg font-semibold text-[#7A5C3E] mb-2">
-          {product.name}
-        </h3>
-        <div className="flex items-center justify-between">
-          <span className="text-lg md:text-xl font-bold text-[#B86B2B]">
+      </Link>
+      <div className="p-4 md:p-6 flex flex-col flex-grow">
+        <Link href={`/san-pham/${product._id}`} className="block flex-grow">
+          <h3 className="text-base md:text-lg font-semibold text-[#7A5C3E] mb-2 line-clamp-2">
+            {product.name}
+          </h3>
+        </Link>
+        <div className="mt-auto flex flex-col">
+          <span className="text-lg md:text-xl font-bold text-[#B86B2B] mb-2">
             {product.price.toLocaleString('vi-VN')}đ
           </span>
-          <Link
-            href={`/san-pham/${product._id}`}
-            className="text-[#B86B2B] hover:text-[#E6A15A] transition-colors duration-300 text-sm md:text-base"
-          >
-            Chi tiết
-          </Link>
+          <div className="flex items-center gap-2">
+            <AddToCartButton
+              product={{
+                id: product._id,
+                name: product.name,
+                price: product.price,
+                image: product.image_url,
+              }}
+            />
+            <Link
+              href={`/san-pham/${product._id}`}
+              className="text-[#B86B2B] hover:text-[#E6A15A] transition-colors duration-300 text-sm md:text-base"
+            >
+              Chi tiết
+            </Link>
+          </div>
         </div>
       </div>
     </motion.div>
