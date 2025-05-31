@@ -86,7 +86,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       toast.error('Vui lòng chọn hình ảnh sản phẩm');
       return;
     }
-
+    console.log('demo', selectedFile);
     const productData: ProductFormData = {
       name: data.name,
       price: data.price,

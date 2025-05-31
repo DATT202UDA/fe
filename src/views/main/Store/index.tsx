@@ -1,10 +1,6 @@
 'use client';
 
-import ShopService, {
-  Category,
-  StoreData,
-  ShopInfo,
-} from '@/services/ShopService';
+import ShopService, { StoreData, ShopInfo } from '@/services/ShopService';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
@@ -41,6 +37,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import StoreService, { StoreRequest, Store } from '@/services/StoreService';
 import { useRouter } from 'next/navigation';
+import { Category } from '@/types/category';
+import EditStoreModal from './EditStoreModal';
+import DeleteStoreModal from './DeleteStoreModal';
 
 // Import the new components
 import StoreLoadingState from './components/StoreLoadingState';
@@ -75,6 +74,10 @@ const StoreView = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [products, setProducts] = useState<ProductType[]>([]);
   const [productsLoading, setProductsLoading] = useState(true); // Define productsLoading
+  const [isEditStoreModalOpen, setIsEditStoreModalOpen] = useState(false);
+  const [isUpdatingStore, setIsUpdatingStore] = useState(false);
+  const [isDeleteStoreModalOpen, setIsDeleteStoreModalOpen] = useState(false);
+  const [isDeletingStore, setIsDeletingStore] = useState(false);
 
   const router = useRouter();
 
@@ -188,11 +191,12 @@ const StoreView = () => {
         return;
       }
 
-      let imageUrl = undefined;
-      if (data.image?.[0]) {
-        const uploadResult = await ShopService.uploadImage(
-          data.image[0] as File,
-        );
+      let imageUrl;
+
+      console.log('data:', data.image?.[0]);
+
+      if (data.image) {
+        const uploadResult = await ShopService.uploadImage(data.image as File);
         imageUrl = uploadResult.url;
       }
 
@@ -205,6 +209,8 @@ const StoreView = () => {
         status: 'active',
         image_url: imageUrl,
       };
+
+      console.log('productData:', productData);
 
       const newProduct = await ProductService.create(productData);
       setProducts((prevProducts) => [...prevProducts, newProduct]);
@@ -220,17 +226,70 @@ const StoreView = () => {
   };
 
   const handleStoreEdit = () => {
-    // TODO: Implement store edit functionality
-    toast('Chức năng chỉnh sửa thông tin cửa hàng đang được phát triển', {
-      icon: 'ℹ️',
-    });
+    setIsEditStoreModalOpen(true);
+    setIsStoreSettingsOpen(false);
   };
 
   const handleStoreDelete = () => {
-    // TODO: Implement store delete functionality
-    toast('Chức năng xóa cửa hàng đang được phát triển', {
-      icon: 'ℹ️',
-    });
+    setIsDeleteStoreModalOpen(true);
+    setIsStoreSettingsOpen(false);
+  };
+
+  const handleConfirmDeleteStore = async () => {
+    if (!shopInfo) return;
+
+    try {
+      setIsDeletingStore(true);
+      await ShopService.deleteStore(shopInfo._id);
+      toast.success('Xóa cửa hàng thành công');
+      // Redirect to home page after successful deletion
+      window.location.href = '/';
+    } catch (error: any) {
+      console.error('Error deleting store:', error);
+      toast.error(error?.response?.data?.message || 'Không thể xóa cửa hàng');
+    } finally {
+      setIsDeletingStore(false);
+      setIsDeleteStoreModalOpen(false);
+    }
+  };
+
+  const handleUpdateStore = async (data: any) => {
+    if (!shopInfo) return;
+
+    try {
+      setIsUpdatingStore(true);
+
+      // Upload new image if changed
+      let imageUrl = shopInfo.image_url;
+      if (data.image?.[0]) {
+        const uploadResult = await ShopService.uploadImage(data.image[0]);
+        imageUrl = uploadResult.url;
+      }
+
+      // Update store data
+      const updateData = {
+        name: data.name,
+        description: data.description,
+        address: data.address,
+        phone: data.phone,
+        email: data.email,
+        image_url: imageUrl,
+      };
+
+      const updatedStore = await ShopService.update(shopInfo._id, updateData);
+      setShopInfo(updatedStore as any);
+
+      toast.success('Cập nhật thông tin cửa hàng thành công');
+      setIsEditStoreModalOpen(false);
+    } catch (error: any) {
+      console.error('Error updating store:', error);
+      toast.error(
+        error?.response?.data?.message ||
+          'Không thể cập nhật thông tin cửa hàng',
+      );
+    } finally {
+      setIsUpdatingStore(false);
+    }
   };
 
   useEffect(() => {
@@ -421,18 +480,23 @@ const StoreView = () => {
         onSubmit={handleAddProductSubmit}
         isLoading={isAddingProduct}
       />
-      <DeleteProductModal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCloseModals}
-        product={selectedProduct}
-        onConfirm={handleDeleteProduct}
+
+      {/* Edit Store Modal */}
+      <EditStoreModal
+        isOpen={isEditStoreModalOpen}
+        onClose={() => setIsEditStoreModalOpen(false)}
+        onSubmit={handleUpdateStore}
+        storeData={shopInfo as any}
+        isLoading={isUpdatingStore}
       />
-      <EditProductModal
-        isOpen={isEditModalOpen}
-        onClose={handleCloseModals}
-        product={selectedProduct}
-        categories={categories}
-        onSubmit={handleUpdateProduct}
+
+      {/* Delete Store Modal */}
+      <DeleteStoreModal
+        isOpen={isDeleteStoreModalOpen}
+        onClose={() => setIsDeleteStoreModalOpen(false)}
+        onConfirm={handleConfirmDeleteStore}
+        storeName={shopInfo?.name || ''}
+        isLoading={isDeletingStore}
       />
     </>
   );
