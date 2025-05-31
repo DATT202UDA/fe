@@ -60,7 +60,7 @@ export interface CreateStoreData {
   image_url?: string;
 }
 
-export interface UpdateStoreData {
+export interface UpdateStoreDto {
   name?: string;
   description?: string;
   address?: string;
@@ -273,6 +273,11 @@ class ShopService {
       console.error('Error fetching store:', error);
       throw new Error('Không thể lấy thông tin cửa hàng');
     }
+  }
+
+  static async update(id: string, data: UpdateStoreDto): Promise<StoreData> {
+    const response = await axiosInstance.put(`/stores/${id}`, data);
+    return response.data;
   }
 }
 
