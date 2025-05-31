@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { FiEdit2, FiUser, FiMail, FiPhone, FiCalendar, FiMapPin, FiFacebook, FiInstagram } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
 import ProfileService, { UserProfile } from '@/services/ProfileService';
+import { toast } from 'react-hot-toast';
 
 interface CustomSession {
   user: {
@@ -15,6 +16,20 @@ interface CustomSession {
     refreshToken: string;
     role: string;
   };
+}
+
+interface Store {
+  _id: string;
+  name: string;
+}
+
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  image_url?: string;
+  status?: string;
+  store_id: Store | string;
 }
 
 const formatDate = (dateString: string) => {
@@ -51,6 +66,9 @@ export const ProfileInformation = () => {
   const [editedProfile, setEditedProfile] = useState(profile);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (session?.user?.accessToken) {
@@ -99,24 +117,47 @@ export const ProfileInformation = () => {
       });
       setProfile(updatedProfile);
       setIsEditing(false);
+      toast.success('Cập nhật thông tin thành công!');
     } catch (err) {
       console.error('Error updating profile:', err);
       setError(err instanceof Error ? err.message : 'Failed to update profile');
     }
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarUploadConfirm = async () => {
+    if (!avatarFile) return;
     try {
-      const updatedProfile = await ProfileService.uploadAvatar(file);
+      setIsUploadingAvatar(true);
+      const updatedProfile = await ProfileService.uploadAvatar(avatarFile);
       setProfile(updatedProfile);
       setEditedProfile(updatedProfile);
+      setAvatarPreview(null);
+      setAvatarFile(null);
+      toast.success('Cập nhật ảnh đại diện thành công!');
     } catch (err) {
       console.error('Error uploading avatar:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload avatar');
+      toast.error(err instanceof Error ? err.message : 'Cập nhật ảnh đại diện thất bại!');
+    } finally {
+      setIsUploadingAvatar(false);
     }
+  };
+
+  const handleAvatarUploadCancel = () => {
+    setAvatarPreview(null);
+    setAvatarFile(null);
   };
 
   if (isLoading) {
@@ -138,20 +179,22 @@ export const ProfileInformation = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F5E9DA]/30 to-white">
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-3xl mx-auto">
-          {/* Profile Header */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-[#E5E3DF] mb-6">
-            <div className="flex flex-col items-center text-center">
-              <div className="relative mb-6">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#B86B2B] shadow-lg">
-                  <Image
-                    src={profile.avatar || '/images/default-avatar.png'}
-                    alt="Profile"
-                    width={128}
-                    height={128}
-                    className="object-cover"
-                  />
-                </div>
+        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column (Avatar and basic info) */}
+          <div className="lg:col-span-1 bg-white rounded-2xl shadow-lg p-6 border border-[#E5E3DF] flex flex-col items-center text-center">
+            <div className="relative mb-6">
+              {/* Avatar Display */}
+              <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-[#B86B2B] shadow-lg">
+                <Image
+                  src={avatarPreview || editedProfile.avatar || '/images/default-avatar.png'}
+                  alt="Profile Avatar"
+                  width={144}
+                  height={144}
+                  className="object-cover"
+                />
+              </div>
+              {/* File Input for Avatar Change */}
+              {!avatarPreview && (
                 <label className="absolute bottom-0 right-0 bg-[#B86B2B] text-white p-2 rounded-full hover:bg-[#E6A15A] transition-colors shadow-md cursor-pointer">
                   <input
                     type="file"
@@ -161,24 +204,58 @@ export const ProfileInformation = () => {
                   />
                   <FiEdit2 className="w-4 h-4" />
                 </label>
-              </div>
+              )}
+            </div>
 
-              <h2 className="text-2xl font-bold text-[#7A5C3E] mb-2">
-                {profile.fullName}
-              </h2>
+            {avatarPreview && (
+              <div className="flex justify-center gap-4 mt-4">
+                {isUploadingAvatar ? (
+                  <div className="text-[#B86B2B]">Đang tải lên...</div>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleAvatarUploadConfirm}
+                      className="px-4 py-2 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
+                    >
+                      Xác nhận
+                    </button>
+                    <button
+                      onClick={handleAvatarUploadCancel}
+                      className="px-4 py-2 border border-gray-400 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      Hủy
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            <h2 className="text-2xl font-bold text-[#7A5C3E] mb-2">
+              {profile.fullName || profile.username}
+            </h2>
+            {profile.joinDate && (
               <p className="text-gray-600 flex items-center gap-2">
                 <FiCalendar className="w-4 h-4" />
                 Thành viên từ {formatDate(profile.joinDate)}
               </p>
+            )}
+            {/* Placeholder for other badges/info if needed */}
+            <div className="mt-4 flex gap-4">
+              {/* Add badge/icon elements here based on the image */} {/* Example: */}
+              {/* Reverted back to light theme style */}
+            </div>
+            <div className="w-full border-t border-gray-200 mt-6 pt-6 flex justify-center">
+              {/* Placeholder for status icon */} {/* Example: */}
+              <FiUser className="w-6 h-6 text-green-600" />
             </div>
           </div>
 
-          {/* Profile Information Form */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-[#E5E3DF]">
+          {/* Right Column (Personal Information Form) */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-8 border border-[#E5E3DF]">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-xl font-bold text-[#7A5C3E] flex items-center gap-2">
                 <FiUser className="w-5 h-5" />
-                Thông tin cá nhân
+                Thông tin tài khoản
               </h3>
               <button
                 onClick={() => setIsEditing(!isEditing)}

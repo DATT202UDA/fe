@@ -16,19 +16,35 @@ import {
   FaTv,
   FaSnowflake,
   FaTshirt,
+  FaCheckCircle,
+  FaTimesCircle,
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
-import ProductService, { Product } from '@/services/ProductService';
+import ProductService from '@/services/ProductService';
 import CategoryService from '@/services/CategoryService';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Category } from '@/types/category';
 
+interface Store {
+  _id: string;
+  name: string;
+}
+
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  image_url?: string;
+  status?: string;
+  store_id: Store | string;
+}
+
 const ProductView = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [priceRange, setPriceRange] = useState([0, 50000000]);
-  const [isPriceFilterEnabled, setIsPriceFilterEnabled] = useState(false);
   const [tempPriceRange, setTempPriceRange] = useState([0, 50000000]);
+  const [isPriceFilterEnabled, setIsPriceFilterEnabled] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -81,6 +97,13 @@ const ProductView = () => {
     fetchProducts();
   }, [currentPage, sortBy, selectedCategory, searchQuery, priceRange, isPriceFilterEnabled]);
 
+  // Reset price filter when changing category or search
+  useEffect(() => {
+    setIsPriceFilterEnabled(false);
+    setPriceRange([0, 50000000]);
+    setTempPriceRange([0, 50000000]);
+  }, [selectedCategory, searchQuery]);
+
   const handleAddToCart = (productId: string) => {
     toast.success('Đã thêm vào giỏ hàng');
   };
@@ -91,6 +114,8 @@ const ProductView = () => {
 
   const handleApplyPriceFilter = () => {
     setPriceRange(tempPriceRange);
+    setIsPriceFilterEnabled(true);
+    setCurrentPage(1);
     fetchProducts();
   };
 
@@ -150,8 +175,8 @@ const ProductView = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
                   />
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#E6A15A] transition-colors"
                   >
                     <FaSearch />
@@ -165,11 +190,10 @@ const ProductView = () => {
                 <div className="space-y-2">
                   <button
                     onClick={() => setSelectedCategory('all')}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
-                      selectedCategory === 'all'
+                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${selectedCategory === 'all'
                         ? 'bg-[#E6A15A] text-white'
                         : 'hover:bg-[#F8F6F3] text-gray-700'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <FaHome className="text-lg" />
@@ -180,11 +204,10 @@ const ProductView = () => {
                     <button
                       key={category._id}
                       onClick={() => setSelectedCategory(category._id)}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
-                        selectedCategory === category._id
+                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${selectedCategory === category._id
                           ? 'bg-[#E6A15A] text-white'
                           : 'hover:bg-[#F8F6F3] text-gray-700'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span>{category.name}</span>
@@ -196,85 +219,64 @@ const ProductView = () => {
 
               {/* Price Range */}
               <div className="bg-white rounded-2xl shadow-sm p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-[#B86B2B]">
-                    Khoảng giá
-                  </h3>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                <h3 className="font-semibold text-[#B86B2B] mb-4">
+                  Khoảng giá
+                </h3>
+                <div className="space-y-6">
+                  {/* Min Price */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>Giá tối thiểu</span>
+                      <span>{tempPriceRange[0].toLocaleString('vi-VN')}đ</span>
+                    </div>
                     <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={isPriceFilterEnabled}
-                      onChange={(e) => {
-                        setIsPriceFilterEnabled(e.target.checked);
-                        if (!e.target.checked) {
-                          setPriceRange([0, 50000000]);
-                          setTempPriceRange([0, 50000000]);
-                          fetchProducts();
-                        }
-                      }}
+                      type="range"
+                      min="0"
+                      max="50000000"
+                      step="1000000"
+                      value={tempPriceRange[0]}
+                      onChange={(e) =>
+                        setTempPriceRange([Number(e.target.value), tempPriceRange[1]])
+                      }
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#E6A15A]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#E6A15A]"></div>
-                  </label>
-                </div>
-                
-                {isPriceFilterEnabled && (
-                  <div className="space-y-6">
-                    {/* Min Price */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm text-gray-600">
-                        <span>Giá tối thiểu</span>
-                        <span>{tempPriceRange[0].toLocaleString('vi-VN')}đ</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="50000000"
-                        step="1000000"
-                        value={tempPriceRange[0]}
-                        onChange={(e) =>
-                          setTempPriceRange([Number(e.target.value), tempPriceRange[1]])
-                        }
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                    </div>
-
-                    {/* Max Price */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm text-gray-600">
-                        <span>Giá tối đa</span>
-                        <span>{tempPriceRange[1].toLocaleString('vi-VN')}đ</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="50000000"
-                        step="1000000"
-                        value={tempPriceRange[1]}
-                        onChange={(e) =>
-                          setTempPriceRange([tempPriceRange[0], Number(e.target.value)])
-                        }
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                    </div>
-
-                    {/* Price Range Display */}
-                    <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded-lg">
-                      <span>Khoảng giá:</span>
-                      <span>
-                        {tempPriceRange[0].toLocaleString('vi-VN')}đ - {tempPriceRange[1].toLocaleString('vi-VN')}đ
-                      </span>
-                    </div>
-
-                    {/* Apply Filter Button */}
-                    <button
-                      onClick={handleApplyPriceFilter}
-                      className="w-full bg-[#E6A15A] text-white py-2 px-4 rounded-lg hover:bg-[#B86B2B] transition-colors"
-                    >
-                      Áp dụng bộ lọc
-                    </button>
                   </div>
-                )}
+
+                  {/* Max Price */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>Giá tối đa</span>
+                      <span>{tempPriceRange[1].toLocaleString('vi-VN')}đ</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="50000000"
+                      step="1000000"
+                      value={tempPriceRange[1]}
+                      onChange={(e) =>
+                        setTempPriceRange([tempPriceRange[0], Number(e.target.value)])
+                      }
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Price Range Display */}
+                  <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded-lg">
+                    <span>Khoảng giá:</span>
+                    <span>
+                      {tempPriceRange[0].toLocaleString('vi-VN')}đ - {tempPriceRange[1].toLocaleString('vi-VN')}đ
+                    </span>
+                  </div>
+
+                  {/* Apply Filter Button */}
+                  <button
+                    onClick={handleApplyPriceFilter}
+                    className="w-full bg-[#E6A15A] text-white py-2 px-4 rounded-lg hover:bg-[#B86B2B] transition-colors"
+                  >
+                    Áp dụng bộ lọc
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -289,7 +291,7 @@ const ProductView = () => {
               >
                 <FaFilter />
                 <span>Bộ lọc</span>
-                {isFilterOpen ? <FaChevronUp /> : <FaChevronDown />}
+
               </button>
               <select
                 value={sortBy}
@@ -319,48 +321,64 @@ const ProductView = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-white rounded-2xl shadow-sm overflow-hidden group hover:shadow-lg transition-all duration-300"
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-white rounded-2xl shadow-xl border border-gray-200 hover:border-[#E6A15A] hover:shadow-2xl transition-all duration-500"
                     >
                       <div className="relative pt-[100%]">
                         <Image
                           src={product.image_url || '/images/placeholder.jpg'}
                           alt={product.name}
                           fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                          className="object-cover rounded-t-2xl"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={(e) => { e.preventDefault(); handleAddToCart(product._id); }}
-                          className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white text-[#E6A15A] px-6 py-2 rounded-full font-semibold opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-2"
-                        >
-                          <FaShoppingCart />
-                          Thêm vào giỏ
-                        </motion.button>
                       </div>
                       <div className="p-4">
-                        <h3 className="font-semibold text-[#9B7B5C] text-lg mb-2 line-clamp-2">
-                          {product.name}
-                        </h3>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-semibold text-[#5C3D2E] text-lg line-clamp-2 flex-1 hover:text-[#E6A15A] transition-colors">
+                            {product.name}
+                          </h3>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={(e) => { e.preventDefault(); handleAddToCart(product._id); }}
+                            className="ml-2 text-[#E6A15A] hover:text-[#B86B2B] transition-colors"
+                          >
+                            <FaShoppingCart className="text-xl" />
+                          </motion.button>
+                        </div>
+
                         <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
                           <span>
-                            {typeof product.store_id === 'object' 
-                              ? product.store_id.name 
+                            {typeof product.store_id === 'object'
+                              ? product.store_id.name
                               : 'Cửa hàng'}
                           </span>
                         </div>
+
                         <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-[#E6A15A]">
+                          <motion.span
+                            initial={{ scale: 0.95 }}
+                            animate={{ scale: 1 }}
+                            transition={{ duration: 0.3 }}
+                            className="text-lg font-bold text-[#E6A15A]"
+                          >
                             {product.price.toLocaleString('vi-VN')}đ
-                          </span>
+                          </motion.span>
+
                           {product.status && (
-                            <span className={`text-sm px-2 py-1 rounded-full ${
-                              product.status === 'active' 
-                                ? 'bg-green-100 text-green-800' 
+                            <span className={`text-sm px-2 py-1 rounded-full flex items-center gap-1 ${product.status === 'active'
+                                ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {product.status === 'active' ? 'Còn hàng' : 'Hết hàng'}
+                              }`}>
+                              {product.status === 'active' ? (
+                                <>
+                                  <FaCheckCircle className="text-green-600" /> Còn hàng
+                                </>
+                              ) : (
+                                <>
+                                  <FaTimesCircle className="text-gray-500" /> Hết hàng
+                                </>
+                              )}
                             </span>
                           )}
                         </div>
@@ -379,11 +397,10 @@ const ProductView = () => {
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`w-10 h-10 rounded-lg border ${
-                        currentPage === page
+                      className={`w-10 h-10 rounded-lg border ${currentPage === page
                           ? 'border-[#E6A15A] text-[#E6A15A]'
                           : 'border-gray-200 text-gray-500 hover:border-[#E6A15A] hover:text-[#E6A15A]'
-                      } flex items-center justify-center transition-colors`}
+                        } flex items-center justify-center transition-colors`}
                     >
                       {page}
                     </button>
