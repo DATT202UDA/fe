@@ -31,6 +31,9 @@ import ProductService, {
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Category } from '@/types/category';
+import EditStoreModal from './EditStoreModal';
+import DeleteStoreModal from './DeleteStoreModal';
 
 interface Product {
   _id: string;
@@ -69,6 +72,10 @@ const StoreView = () => {
   const [productsLoading, setProductsLoading] = useState(true);
   const [isStoreSettingsOpen, setIsStoreSettingsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isEditStoreModalOpen, setIsEditStoreModalOpen] = useState(false);
+  const [isUpdatingStore, setIsUpdatingStore] = useState(false);
+  const [isDeleteStoreModalOpen, setIsDeleteStoreModalOpen] = useState(false);
+  const [isDeletingStore, setIsDeletingStore] = useState(false);
 
   const {
     control,
@@ -278,17 +285,70 @@ const StoreView = () => {
   };
 
   const handleStoreEdit = () => {
-    // TODO: Implement store edit functionality
-    toast('Chức năng đang được phát triển', {
-      icon: 'ℹ️',
-    });
+    setIsEditStoreModalOpen(true);
+    setIsStoreSettingsOpen(false);
   };
 
   const handleStoreDelete = () => {
-    // TODO: Implement store delete functionality
-    toast('Chức năng đang được phát triển', {
-      icon: 'ℹ️',
-    });
+    setIsDeleteStoreModalOpen(true);
+    setIsStoreSettingsOpen(false);
+  };
+
+  const handleConfirmDeleteStore = async () => {
+    if (!shopInfo) return;
+
+    try {
+      setIsDeletingStore(true);
+      await ShopService.deleteStore(shopInfo._id);
+      toast.success('Xóa cửa hàng thành công');
+      // Redirect to home page after successful deletion
+      window.location.href = '/';
+    } catch (error: any) {
+      console.error('Error deleting store:', error);
+      toast.error(error?.response?.data?.message || 'Không thể xóa cửa hàng');
+    } finally {
+      setIsDeletingStore(false);
+      setIsDeleteStoreModalOpen(false);
+    }
+  };
+
+  const handleUpdateStore = async (data: any) => {
+    if (!shopInfo) return;
+
+    try {
+      setIsUpdatingStore(true);
+
+      // Upload new image if changed
+      let imageUrl = shopInfo.image_url;
+      if (data.image?.[0]) {
+        const uploadResult = await ShopService.uploadImage(data.image[0]);
+        imageUrl = uploadResult.url;
+      }
+
+      // Update store data
+      const updateData = {
+        name: data.name,
+        description: data.description,
+        address: data.address,
+        phone: data.phone,
+        email: data.email,
+        image_url: imageUrl,
+      };
+
+      const updatedStore = await ShopService.update(shopInfo._id, updateData);
+      setShopInfo(updatedStore);
+
+      toast.success('Cập nhật thông tin cửa hàng thành công');
+      setIsEditStoreModalOpen(false);
+    } catch (error: any) {
+      console.error('Error updating store:', error);
+      toast.error(
+        error?.response?.data?.message ||
+          'Không thể cập nhật thông tin cửa hàng',
+      );
+    } finally {
+      setIsUpdatingStore(false);
+    }
   };
 
   return (
@@ -820,6 +880,24 @@ const StoreView = () => {
         categories={categories.map((cat) => ({ id: cat._id, name: cat.name }))}
         onSubmit={handleAddProductSubmit}
         isLoading={isAddingProduct}
+      />
+
+      {/* Edit Store Modal */}
+      <EditStoreModal
+        isOpen={isEditStoreModalOpen}
+        onClose={() => setIsEditStoreModalOpen(false)}
+        onSubmit={handleUpdateStore}
+        storeData={shopInfo}
+        isLoading={isUpdatingStore}
+      />
+
+      {/* Delete Store Modal */}
+      <DeleteStoreModal
+        isOpen={isDeleteStoreModalOpen}
+        onClose={() => setIsDeleteStoreModalOpen(false)}
+        onConfirm={handleConfirmDeleteStore}
+        storeName={shopInfo?.name || ''}
+        isLoading={isDeletingStore}
       />
     </div>
   );
