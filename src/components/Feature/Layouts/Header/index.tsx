@@ -32,8 +32,8 @@ const Header = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const { items } = useCart();
+  const totalQuantity = new Set(items.map(item => item.id)).size;
 
-  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
