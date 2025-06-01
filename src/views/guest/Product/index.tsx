@@ -25,6 +25,7 @@ import CategoryService from '@/services/CategoryService';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Category } from '@/types/category';
+import { useCart } from '@/contexts/CartContext';
 
 interface Store {
   _id: string;
@@ -55,6 +56,7 @@ const ProductView = () => {
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const { addItem } = useCart();
 
   const fetchCategories = async () => {
     try {
@@ -104,7 +106,15 @@ const ProductView = () => {
     setTempPriceRange([0, 50000000]);
   }, [selectedCategory, searchQuery]);
 
-  const handleAddToCart = (productId: string) => {
+  
+  const handleAddToCart = (product: Product) => {
+    if (!product.image_url) return;
+    addItem({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.image_url,
+    });
     toast.success('Đã thêm vào giỏ hàng');
   };
 
@@ -281,42 +291,50 @@ const ProductView = () => {
             </div>
           </motion.div>
 
-          {/* Products Grid */}
+          {/* Product Grid */}
           <div className="lg:col-span-9">
-            {/* Sort and Filter */}
+            {/* Sort Options */}
             <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <select
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                  className="bg-transparent border border-gray-200 rounded-lg px-4 py-2 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
+                >
+                  <option value="newest">Mới nhất</option>
+                  <option value="price_asc">Giá tăng dần</option>
+                  <option value="price_desc">Giá giảm dần</option>
+                </select>
+              </div>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="flex items-center gap-2 text-gray-600 hover:text-[#E6A15A] transition-colors"
+                className="lg:hidden flex items-center gap-2 text-gray-600 hover:text-[#B86B2B] transition-colors"
               >
                 <FaFilter />
                 <span>Bộ lọc</span>
-
               </button>
-              <select
-                value={sortBy}
-                onChange={(e) => handleSortChange(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
-              >
-                <option value="newest">Mới nhất</option>
-                <option value="price_asc">Giá tăng dần</option>
-                <option value="price_desc">Giá giảm dần</option>
-              </select>
             </div>
 
             {/* Products */}
             {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E6A15A]"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, index) => (
+                  <div
+                    key={index}
+                    className="bg-white rounded-2xl shadow-sm p-4 animate-pulse"
+                  >
+                    <div className="aspect-square bg-gray-200 rounded-xl mb-4" />
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                    <div className="h-4 bg-gray-200 rounded w-1/2" />
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
-                  <Link
+                  <div
                     key={product._id}
-                    href={`/san-pham/${product._id}`}
-                    className="block"
-                    prefetch={false}
+                    className="bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow"
                   >
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
@@ -326,7 +344,7 @@ const ProductView = () => {
                     >
                       <div className="relative pt-[100%]">
                         <Image
-                          src={product.image_url || '/images/placeholder.jpg'}
+                          src={product.image_url || '/placeholder.png'}
                           alt={product.name}
                           fill
                           className="object-cover rounded-t-2xl"
@@ -340,7 +358,7 @@ const ProductView = () => {
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            onClick={(e) => { e.preventDefault(); handleAddToCart(product._id); }}
+                            onClick={(e) => { e.preventDefault(); handleAddToCart(product); }}
                             className="ml-2 text-[#E6A15A] hover:text-[#B86B2B] transition-colors"
                           >
                             <FaShoppingCart className="text-xl" />
@@ -384,7 +402,7 @@ const ProductView = () => {
                         </div>
                       </div>
                     </motion.div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}

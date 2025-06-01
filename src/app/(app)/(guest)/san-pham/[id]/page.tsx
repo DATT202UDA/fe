@@ -21,6 +21,7 @@ import {
 import ProductService, { Product } from '@/services/ProductService';
 import ShopService, { StoreData } from '@/services/ShopService';
 import { toast } from 'react-hot-toast';
+import { AddToCartButton } from '@/components/Common/AddToCartButton';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -204,11 +205,17 @@ const ProductDetailPage = () => {
                 </div>
 
                 <div className="flex gap-4">
-                  <button className="flex-1 bg-[#B86B2B] text-white py-4 rounded-xl hover:bg-[#E6A15A] transition-colors font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                    <FiShoppingCart className="w-5 h-5" />
-                    Thêm vào giỏ hàng
-                  </button>
-                  <button className="flex-1 bg-[#7A5C3E] text-white py-4 rounded-xl hover:bg-[#9B7B5C] transition-colors font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                  <AddToCartButton
+                    product={{
+                      id: product._id,
+                      name: product.name,
+                      price: product.price,
+                      image: product.image_url,
+                    }}
+                    quantity={quantity}
+                    variant="full"
+                  />
+                  <button className="flex-1 bg-[#7A5C3E] text-white py-4 rounded-xl hover:bg-[#9B7B5C] transition-all duration-300 font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]">
                     Mua ngay
                   </button>
                 </div>
