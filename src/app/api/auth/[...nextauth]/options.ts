@@ -38,10 +38,13 @@ export const authOptions = (): AuthOptions => {
               id: data.id,
               username: data.username,
               email: data.email,
+              name: data.name || data.username,
+              avatar: data.avatar,
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
               expiresIn: data.expiresIn,
               role: data.role,
+              fullName: data.fullName,
             };
           } catch (error: any) {
             console.error('Auth error:', error);
@@ -66,6 +69,7 @@ export const authOptions = (): AuthOptions => {
           token.id = user.id;
           token.username = user.username;
           token.email = user.email;
+          // token.fullName = user.fullName;
           token.accessToken = user.accessToken;
           token.refreshToken = user.refreshToken;
           token.exp = Math.floor(Date.now() / 1000) + user.expiresIn;
@@ -97,6 +101,7 @@ export const authOptions = (): AuthOptions => {
             id: token.id,
             username: token.username,
             email: token.email,
+            fullName: token.fullName,
             accessToken: token.accessToken,
             refreshToken: token.refreshToken,
             role: token.role,

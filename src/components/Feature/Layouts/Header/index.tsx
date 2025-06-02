@@ -32,8 +32,7 @@ const Header = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const { items } = useCart();
-  const totalQuantity = new Set(items.map(item => item.id)).size;
-
+  const totalQuantity = new Set(items.map((item) => item.id)).size;
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
@@ -105,7 +104,7 @@ const Header = () => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <button 
+                <button
                   type="submit"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A5C3E] hover:text-[#B86B2B] transition"
                 >
@@ -133,7 +132,7 @@ const Header = () => {
                       onClick={() => setIsProfileDropdownOpen((v) => !v)}
                     >
                       <div className="relative w-8 h-8 rounded-full bg-[#F5E9DA] flex items-center justify-center overflow-hidden">
-                        {session.user?.avatar ? (
+                        {/* {session.user?.avatar ? (
                           <Image
                             src={session.user.avatar}
                             alt={session.user.name || 'User avatar'}
@@ -145,7 +144,7 @@ const Header = () => {
                             size={24}
                             className="text-[#7A5C3E] group-hover:text-[#B86B2B] transition"
                           />
-                        )}
+                        )} */}
                       </div>
                       <FaChevronDown
                         size={14}
@@ -314,7 +313,10 @@ const Header = () => {
 
                       {/* Mobile Search */}
                       <div className="px-4 py-4 border-b border-[#E5E3DF]">
-                        <form onSubmit={handleSearch} className="relative group">
+                        <form
+                          onSubmit={handleSearch}
+                          className="relative group"
+                        >
                           <input
                             type="text"
                             className="w-full px-4 py-3 rounded-full border border-[#E5E3DF] focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 outline-none transition-all duration-300 group-hover:border-[#B86B2B]/50"
@@ -322,7 +324,7 @@ const Header = () => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                           />
-                          <button 
+                          <button
                             type="submit"
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A5C3E] hover:text-[#B86B2B] transition-all duration-300 hover:scale-110"
                           >

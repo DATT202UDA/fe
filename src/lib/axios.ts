@@ -1,5 +1,17 @@
 import axios from 'axios';
 import { getSession } from 'next-auth/react';
+import { Session } from 'next-auth';
+
+// Extend the Session type
+interface ExtendedSession extends Session {
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    accessToken: string;
+  };
+  error?: string;
+}
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -12,7 +24,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {
-      const session = await getSession();
+      const session = (await getSession()) as ExtendedSession;
       const token = session?.user?.accessToken;
       if (token) {
         config.headers = config.headers || {};
@@ -39,7 +51,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         // Lấy session mới
-        const session = await getSession();
+        const session = (await getSession()) as ExtendedSession;
         if (session?.user?.accessToken) {
           // Thử lại request với token mới
           originalRequest.headers[

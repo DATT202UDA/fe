@@ -1,9 +1,8 @@
 'use client';
 
-import ShopService, { StoreData } from '@/services/ShopService';
+import ShopService, { Category, StoreData } from '@/services/ShopService';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
   FaEdit,
@@ -24,7 +23,7 @@ import {
 import NotExistStore from './NotExistStore';
 import { toast } from 'react-hot-toast';
 import AddProductModal from './AddProductModal';
-import CategoryService, { Category } from '@/services/CategoryService';
+import CategoryService from '@/services/CategoryService';
 import ProductService, {
   Product as ProductType,
   UpdateProductDto,
@@ -51,6 +50,7 @@ const productSchema = z.object({
     .refine((val) => Number(val) > 0, 'Giá phải lớn hơn 0'),
   description: z.string().min(1, 'Mô tả sản phẩm là bắt buộc'),
   image: z.any().optional(),
+  categoryId: z.string().min(1, 'Danh mục sản phẩm là bắt buộc'),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -625,8 +625,8 @@ const StoreView = () => {
                 </button>
               </div>
               <p className="text-gray-600 mb-6">
-                Bạn có chắc chắn muốn xóa sản phẩm "{selectedProduct?.name}"?
-                Hành động này không thể hoàn tác.
+                Bạn có chắc chắn muốn xóa sản phẩm &quot;{selectedProduct?.name}
+                &quot;? Hành động này không thể hoàn tác.
               </p>
               <div className="flex justify-end gap-4">
                 <button

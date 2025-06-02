@@ -2,6 +2,13 @@ import { useSession, signOut } from 'next-auth/react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Extend the Session type to include error property
+declare module 'next-auth' {
+  interface Session {
+    error?: string;
+  }
+}
+
 export const useAuth = () => {
   const { data: session, status } = useSession();
   const router = useRouter();

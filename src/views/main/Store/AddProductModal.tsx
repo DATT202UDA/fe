@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { FaPlus, FaTimes } from 'react-icons/fa';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
-import CategoryService, { Category } from '@/services/CategoryService';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
