@@ -1,3 +1,5 @@
+import { StoreStatus } from '@/services/StoreService';
+
 export interface Owner {
   _id: string;
   full_name: string;
@@ -23,16 +25,20 @@ export interface Store {
   _id: string;
   name: string;
   address: string;
-  description: string;
+  description?: string;
   phone: string;
   email: string;
   rate_avg: number;
-  image_url: string;
+  image_url?: string;
   user_id: string;
-  status: 'pending' | 'complete';
+  status: StoreStatus;
   created_at: string;
-  createdAt: string;
-  updatedAt: string;
+  updated_at?: string;
+  deleted_at?: string;
+  processed_by?: string;
+  processed_at?: string;
+  rejection_reason?: string;
+  note?: string;
 }
 
 export interface StoreCategory {
@@ -46,7 +52,7 @@ export interface StoreCategory {
 
 export interface CreateStoreDto {
   name: string;
-  description: string;
+  description?: string;
   address: string;
   phone: string;
   email: string;
@@ -55,6 +61,29 @@ export interface CreateStoreDto {
 
 export interface UpdateStoreDto extends Partial<CreateStoreDto> {}
 
+export interface UpdateStoreStatusDto {
+  status: StoreStatus;
+  note?: string;
+  rejection_reason?: string;
+}
+
 export interface GetStoresParams {
-  status?: 'pending' | 'complete';
+  status?: StoreStatus;
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export interface GetStoreRequestsParams {
+  status?: StoreRequest['status'];
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export interface StoreResponse {
+  stores: Store[];
+  total: number;
+  page: number;
+  totalPages: number;
 }

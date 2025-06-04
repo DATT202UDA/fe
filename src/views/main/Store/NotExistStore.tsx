@@ -1,14 +1,19 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { FaStore, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
+import {
+  FaStore,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaEnvelope,
+  FaInfoCircle,
+} from 'react-icons/fa';
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import ShopService from '@/services/ShopService';
-import type { CreateStoreData } from '@/services/ShopService';
+import StoreService, { CreateStoreRequestDto } from '@/services/StoreService';
 
 // Validation schema
 const storeSchema = z.object({
@@ -24,7 +29,12 @@ const storeSchema = z.object({
     .string()
     .min(5, 'Địa chỉ phải có ít nhất 5 ký tự')
     .max(200, 'Địa chỉ không được vượt quá 200 ký tự'),
-  phone: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại không hợp lệ'),
+  phone: z
+    .string()
+    .regex(
+      /^\+?[0-9]{10,15}$/,
+      'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại từ 10-15 chữ số, có thể bắt đầu bằng dấu +',
+    ),
   email: z
     .string()
     .email('Email không hợp lệ')
@@ -57,9 +67,21 @@ const NotExistStore = () => {
     },
   });
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Kích thước ảnh không được vượt quá 2MB');
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('File phải là ảnh');
+        return;
+      }
+
       setSelectedFile(file);
       // Create preview URL
       const reader = new FileReader();
@@ -78,12 +100,12 @@ const NotExistStore = () => {
 
       // Upload image if exists
       if (selectedFile) {
-        const uploadResult = await ShopService.uploadImage(selectedFile);
+        const uploadResult = await StoreService.uploadImage(selectedFile);
         imageUrl = uploadResult.url;
       }
 
-      // Create store with image URL
-      await ShopService.createStore({
+      // Create store request
+      const response = await StoreService.createStoreRequest({
         name: data.name,
         description: data.description,
         address: data.address,
@@ -92,11 +114,15 @@ const NotExistStore = () => {
         image_url: imageUrl,
       });
 
-      toast.success('Tạo cửa hàng thành công!');
-      router.push('/cua-hang');
-      window.location.reload(); // Force a complete page refresh
+      toast.success(
+        'Gửi yêu cầu tạo cửa hàng thành công! Vui lòng chờ admin duyệt.',
+      );
+      // Chuyển hướng đến trang xem trạng thái yêu cầu trong router (main)
+      router.push(`/cua-hang/trang-thai/${response._id}`);
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(
+        error.message || 'Có lỗi xảy ra khi gửi yêu cầu tạo cửa hàng',
+      );
     } finally {
       setLoading(false);
     }
@@ -117,9 +143,18 @@ const NotExistStore = () => {
           <h1 className="text-3xl font-bold text-[#9B7B5C] mb-4">
             Bạn chưa có cửa hàng nào
           </h1>
-          <p className="text-gray-600">
-            Tạo cửa hàng của bạn ngay để bắt đầu kinh doanh
+          <p className="text-gray-600 mb-4">
+            Gửi yêu cầu tạo cửa hàng để bắt đầu kinh doanh
           </p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-2xl mx-auto">
+            <div className="flex items-start">
+              <FaInfoCircle className="text-yellow-500 mt-1 mr-3 flex-shrink-0" />
+              <p className="text-sm text-yellow-700">
+                Yêu cầu của bạn sẽ được admin xem xét và duyệt trong thời gian
+                sớm nhất. Vui lòng cung cấp thông tin chính xác và đầy đủ.
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         <motion.div
@@ -137,7 +172,7 @@ const NotExistStore = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tên cửa hàng
+                  Tên cửa hàng <span className="text-red-500">*</span>
                 </label>
                 <Controller
                   name="name"
@@ -162,7 +197,7 @@ const NotExistStore = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mô tả cửa hàng
+                  Mô tả cửa hàng <span className="text-red-500">*</span>
                 </label>
                 <Controller
                   name="description"
@@ -191,7 +226,7 @@ const NotExistStore = () => {
                 </label>
                 <div className="mt-1 flex items-center gap-4">
                   <div
-                    className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer"
+                    className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#E6A15A] transition-colors"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     {logoPreview ? (
@@ -224,6 +259,9 @@ const NotExistStore = () => {
                   >
                     Chọn ảnh
                   </button>
+                  <p className="text-xs text-gray-500">
+                    Kích thước tối đa: 2MB. Định dạng: JPG, PNG
+                  </p>
                 </div>
               </div>
             </div>
@@ -238,7 +276,7 @@ const NotExistStore = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <FaMapMarkerAlt className="inline-block mr-2 text-[#E6A15A]" />
-                    Địa chỉ
+                    Địa chỉ <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="address"
@@ -264,7 +302,7 @@ const NotExistStore = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <FaPhone className="inline-block mr-2 text-[#E6A15A]" />
-                    Số điện thoại
+                    Số điện thoại <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="phone"
@@ -282,6 +320,9 @@ const NotExistStore = () => {
                             {errors.phone.message}
                           </p>
                         )}
+                        <p className="mt-1 text-xs text-gray-500">
+                          Ví dụ: 0912345678 hoặc +1234567890
+                        </p>
                       </div>
                     )}
                   />
@@ -290,7 +331,7 @@ const NotExistStore = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <FaEnvelope className="inline-block mr-2 text-[#E6A15A]" />
-                    Email
+                    Email <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="email"
@@ -315,7 +356,7 @@ const NotExistStore = () => {
               </div>
             </div>
 
-            {/* Nút tạo cửa hàng */}
+            {/* Nút gửi yêu cầu */}
             <div className="pt-6 border-t">
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -324,7 +365,7 @@ const NotExistStore = () => {
                 disabled={loading}
                 className="w-full bg-[#E6A15A] hover:bg-[#F0B97A] text-white px-6 py-3 rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Đang tạo cửa hàng...' : 'Tạo cửa hàng'}
+                {loading ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu tạo cửa hàng'}
               </motion.button>
             </div>
           </form>

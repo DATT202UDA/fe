@@ -3,29 +3,28 @@
 import { useState, useEffect } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { DataTable } from '@/components/admin/common/DataTable';
-import StoreService, { Store } from '@/services/StoreService';
+import StoreService, { Store, StoreStatus } from '@/services/StoreService';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 import { Modal } from '@/components/admin/common/Modal';
 import { StoreEditForm } from '@/components/admin/stores/StoreEditForm';
-import { UpdateStoreDto } from '@/types/store';
+import { UpdateStoreDto, UpdateStoreStatusDto } from '@/types/store';
 
 interface StoreColumn {
   header: string;
-  accessor?: keyof Store | string; // Accessor keyof Store or a custom string for non-direct access
-  cell: (value: any, row: Store, rowIndex: number) => React.ReactNode; // Cell renderer receives row data
+  accessor?: keyof Store | string;
+  cell: (value: any, row: Store, rowIndex: number) => React.ReactNode;
 }
 
 export default function StoresView() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<
-    'ALL' | 'pending' | 'complete'
-  >('ALL');
+  const [statusFilter, setStatusFilter] = useState<StoreStatus | 'ALL'>('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stores, setStores] = useState<Store[]>([]);
   const [totalStores, setTotalStores] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -40,13 +39,15 @@ export default function StoresView() {
     try {
       setIsLoading(true);
       setError(null);
-      const fetchedStores = await StoreService.getAll({
+      const response = await StoreService.getAll({
         page: currentPage,
+        limit: 10,
         search: searchTerm,
         status: statusFilter === 'ALL' ? undefined : statusFilter,
       });
-      setStores(fetchedStores);
-      setTotalStores(fetchedStores.length);
+      setStores(response.stores);
+      setTotalStores(response.total);
+      setTotalPages(response.totalPages);
     } catch (err) {
       console.error('Error fetching stores:', err);
       setError(
@@ -64,16 +65,28 @@ export default function StoresView() {
     fetchStores();
   }, [currentPage, searchTerm, statusFilter]);
 
-  const handleStatusChange = async (store: Store, newStatus: string) => {
+  const handleStatusChange = async (store: Store, newStatus: StoreStatus) => {
     setSelectedStore(store);
     setIsStatusModalOpen(true);
   };
 
-  const handleConfirmStatusChange = async () => {
+  const handleConfirmStatusChange = async (data: UpdateStoreStatusDto) => {
     if (!selectedStore) return;
     try {
       setIsUpdatingStatus(true);
-      await StoreService.updateStatus(selectedStore._id, 'complete');
+      const updateData: UpdateStoreStatusDto = {
+        status: data.status,
+        note:
+          data.note ||
+          `Đã ${
+            data.status === StoreStatus.APPROVED ? 'duyệt' : 'từ chối'
+          } bởi admin`,
+        rejection_reason:
+          data.status === StoreStatus.REJECTED
+            ? data.rejection_reason
+            : undefined,
+      };
+      await StoreService.updateStatus(selectedStore._id, updateData);
       toast.success('Cập nhật trạng thái cửa hàng thành công!');
       setIsStatusModalOpen(false);
       setSelectedStore(null);
@@ -119,10 +132,14 @@ export default function StoresView() {
     setIsEditModalOpen(true);
   };
 
-  const handleUpdateSubmit = async (data: Partial<UpdateStoreDto>) => {
+  const handleUpdateSubmit = async (data: UpdateStoreDto) => {
     if (!storeToEdit) return;
     try {
       setIsUpdating(true);
+      console.log(
+        'StoresView: Gửi request update store với data:',
+        JSON.stringify(data, null, 2),
+      );
       await StoreService.update(storeToEdit._id, data);
       toast.success('Cập nhật cửa hàng thành công!');
       setIsEditModalOpen(false);
@@ -140,10 +157,41 @@ export default function StoresView() {
     }
   };
 
+  const getStatusBadgeClass = (status: StoreStatus) => {
+    switch (status) {
+      case StoreStatus.PENDING:
+        return 'bg-yellow-100 text-yellow-800';
+      case StoreStatus.APPROVED:
+        return 'bg-green-100 text-green-800';
+      case StoreStatus.REJECTED:
+        return 'bg-red-100 text-red-800';
+      case StoreStatus.COMPLETED:
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status: StoreStatus) => {
+    switch (status) {
+      case StoreStatus.PENDING:
+        return 'Chờ duyệt';
+      case StoreStatus.APPROVED:
+        return 'Đã duyệt';
+      case StoreStatus.REJECTED:
+        return 'Đã từ chối';
+      case StoreStatus.COMPLETED:
+        return 'Hoàn thành';
+      default:
+        return status;
+    }
+  };
+
   const columns: StoreColumn[] = [
     {
       header: 'STT',
-      cell: (value: any, row: Store, rowIndex: number) => rowIndex + 1,
+      cell: (value: any, row: Store, rowIndex: number) =>
+        (currentPage - 1) * 10 + rowIndex + 1,
     },
     {
       header: 'Tên cửa hàng',
@@ -165,11 +213,7 @@ export default function StoresView() {
         </div>
       ),
     },
-    {
-      header: 'Địa chỉ',
-      accessor: 'address',
-      cell: (value: any, row: Store) => row.address,
-    },
+
     {
       header: 'Số điện thoại',
       accessor: 'phone',
@@ -181,6 +225,11 @@ export default function StoresView() {
       cell: (value: any, row: Store) => row.email,
     },
     {
+      header: 'Địa chỉ',
+      accessor: 'address',
+      cell: (value: any, row: Store) => row.address,
+    },
+    {
       header: 'Đánh giá',
       accessor: 'rate_avg',
       cell: (value: any, row: Store) =>
@@ -189,19 +238,15 @@ export default function StoresView() {
     {
       header: 'Trạng thái',
       accessor: 'status',
-      cell: (value: any, row: Store) => {
-        const statusClass =
-          row.status === 'complete'
-            ? 'bg-green-100 text-green-800'
-            : 'bg-yellow-100 text-yellow-800';
-        return (
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClass}`}
-          >
-            {row.status === 'complete' ? 'Hoàn thành' : 'Đang xử lý'}
-          </span>
-        );
-      },
+      cell: (value: any, row: Store) => (
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadgeClass(
+            row.status,
+          )}`}
+        >
+          {getStatusText(row.status)}
+        </span>
+      ),
     },
     {
       header: 'Ngày tạo',
@@ -222,13 +267,21 @@ export default function StoresView() {
           >
             Chỉnh sửa
           </button>
-          {row.status !== 'complete' && (
-            <button
-              onClick={() => handleStatusChange(row, 'complete')}
-              className="px-2 py-1 text-sm text-green-600 border border-green-600 rounded hover:bg-green-50"
-            >
-              Duyệt
-            </button>
+          {row.status === StoreStatus.PENDING && (
+            <>
+              <button
+                onClick={() => handleStatusChange(row, StoreStatus.APPROVED)}
+                className="px-2 py-1 text-sm text-green-600 border border-green-600 rounded hover:bg-green-50"
+              >
+                Duyệt
+              </button>
+              <button
+                onClick={() => handleStatusChange(row, StoreStatus.REJECTED)}
+                className="px-2 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50"
+              >
+                Từ chối
+              </button>
+            </>
           )}
           <button
             onClick={() => handleDeleteClick(row)}
@@ -256,7 +309,7 @@ export default function StoresView() {
           <div className="relative">
             <input
               type="text"
-              placeholder="Tìm kiếm theo tên cửa hàng, chủ cửa hàng..."
+              placeholder="Tìm kiếm theo tên cửa hàng, địa chỉ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#E5E3DF] focus:outline-none focus:ring-2 focus:ring-[#E6A15A] focus:border-transparent"
@@ -268,13 +321,15 @@ export default function StoresView() {
           <select
             value={statusFilter}
             onChange={(e) =>
-              setStatusFilter(e.target.value as 'ALL' | 'pending' | 'complete')
+              setStatusFilter(e.target.value as StoreStatus | 'ALL')
             }
             className="px-4 py-2 rounded-lg border border-[#E5E3DF] focus:outline-none focus:ring-2 focus:ring-[#E6A15A] focus:border-transparent"
           >
             <option value="ALL">Tất cả trạng thái</option>
-            <option value="pending">Đang chờ duyệt</option>
-            <option value="complete">Đã hoàn thành</option>
+            <option value={StoreStatus.PENDING}>Chờ duyệt</option>
+            <option value={StoreStatus.APPROVED}>Đã duyệt</option>
+            <option value={StoreStatus.REJECTED}>Đã từ chối</option>
+            <option value={StoreStatus.COMPLETED}>Hoàn thành</option>
           </select>
         </div>
       </div>
@@ -291,7 +346,18 @@ export default function StoresView() {
         <div className="text-center text-[#7A5C3E]">Đang tải...</div>
       ) : error ? null : (
         <div className="w-full overflow-x-auto min-w-[1200px]">
-          <DataTable columns={columns as any} data={stores} />
+          <DataTable
+            columns={columns as any}
+            data={stores}
+            pagination={{
+              currentPage,
+              totalPages,
+              onPageChange: (page) => {
+                setCurrentPage(page);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              },
+            }}
+          />
         </div>
       )}
 
@@ -302,32 +368,58 @@ export default function StoresView() {
           setIsStatusModalOpen(false);
           setSelectedStore(null);
         }}
-        title="Xác nhận duyệt cửa hàng"
+        title="Cập nhật trạng thái cửa hàng"
       >
         {selectedStore && (
           <div className="space-y-4">
             <p className="text-[#7A5C3E]">
-              Bạn có chắc chắn muốn duyệt cửa hàng{' '}
+              Bạn có chắc chắn muốn cập nhật trạng thái cửa hàng{' '}
               <strong>{selectedStore.name}</strong> không?
             </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setIsStatusModalOpen(false);
-                  setSelectedStore(null);
-                }}
-                className="px-4 py-2 text-sm text-[#7A5C3E] border border-[#E5E3DF] rounded hover:bg-[#F8F6F3]"
-                disabled={isUpdatingStatus}
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleConfirmStatusChange}
-                className="px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isUpdatingStatus}
-              >
-                {isUpdatingStatus ? 'Đang xử lý...' : 'Xác nhận'}
-              </button>
+            <div className="flex flex-col gap-4">
+              {selectedStore.status === StoreStatus.PENDING && (
+                <>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        handleConfirmStatusChange({
+                          status: StoreStatus.APPROVED,
+                          note: 'Đã duyệt bởi admin',
+                        })
+                      }
+                      className="flex-1 px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isUpdatingStatus}
+                    >
+                      Duyệt
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleConfirmStatusChange({
+                          status: StoreStatus.REJECTED,
+                          note: 'Đã từ chối bởi admin',
+                          rejection_reason: 'Không đáp ứng yêu cầu',
+                        })
+                      }
+                      className="flex-1 px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isUpdatingStatus}
+                    >
+                      Từ chối
+                    </button>
+                  </div>
+                </>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => {
+                    setIsStatusModalOpen(false);
+                    setSelectedStore(null);
+                  }}
+                  className="px-4 py-2 text-sm text-[#7A5C3E] border border-[#E5E3DF] rounded hover:bg-[#F8F6F3]"
+                  disabled={isUpdatingStatus}
+                >
+                  Hủy
+                </button>
+              </div>
             </div>
           </div>
         )}

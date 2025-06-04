@@ -24,7 +24,7 @@ export interface ShopInfo {
   _id: string;
   name: string;
   address: string;
-  description: string;
+  description?: string;
   phone: string;
   email: string;
   rate_avg: number;
@@ -48,8 +48,7 @@ export interface StoreData {
   user_id: string;
   status: string;
   created_at: string;
-  createdAt: string;
-  updatedAt: string;
+  updated_at?: string;
 }
 
 export interface CreateStoreData {
@@ -74,14 +73,21 @@ class ShopService {
   static async getShopInfo(): Promise<ShopInfo> {
     try {
       const response = await axiosInstance.get('/stores/my-store');
-      if (!response.data) {
-        throw new Error('Không nhận được dữ liệu từ server');
+      if (
+        !response.data ||
+        !response.data.stores ||
+        response.data.stores.length === 0
+      ) {
+        throw new Error('Không tìm thấy thông tin cửa hàng');
       }
-      return response.data[0];
+      return response.data.stores[0];
     } catch (error: any) {
       console.error('Error fetching shop info:', error);
       if (error.response?.status === 401) {
         throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      }
+      if (error.response?.status === 404) {
+        throw new Error('Không tìm thấy thông tin cửa hàng');
       }
       throw new Error(
         error?.response?.data?.message || 'Không thể lấy thông tin cửa hàng',

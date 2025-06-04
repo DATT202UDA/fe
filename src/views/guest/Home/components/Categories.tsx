@@ -12,8 +12,8 @@ const Categories = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const data = await CategoryService.findAll();
-        setCategories(data.slice(0, 4)); // Chỉ lấy 4 category đầu tiên
+        const response = await CategoryService.findAll();
+        setCategories(response.categories.slice(0, 4)); // Access categories from response
       } catch (error) {
         console.error('Error fetching categories:', error);
       } finally {

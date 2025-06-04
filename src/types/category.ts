@@ -3,6 +3,7 @@ export interface Category {
   name: string;
   description?: string;
   image_url?: string;
+  deleted_at?: string | null;
   created_at: string;
   updated_at?: string;
 }
@@ -10,7 +11,7 @@ export interface Category {
 export interface CreateCategoryDto {
   name: string;
   description?: string;
-  image?: string;
+  image_url?: string;
 }
 
 export interface UpdateCategoryDto extends Partial<CreateCategoryDto> {}

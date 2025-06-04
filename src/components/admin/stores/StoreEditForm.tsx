@@ -121,7 +121,7 @@ export function StoreEditForm({
 
       console.log(
         'StoreEditForm: Gửi request update store với JSON data:',
-        changedData,
+        JSON.stringify(changedData, null, 2),
       );
       // Step 3: Submit the update data (which now includes the new image URL if applicable)
       await onSubmit(changedData);

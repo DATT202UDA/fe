@@ -24,7 +24,7 @@ export interface CreateProductDto {
   category_id?: string;
   price: number;
   status: string;
-  image_url: string;
+  image_url?: string;
 }
 
 export interface UpdateProductDto extends Partial<CreateProductDto> {}
@@ -42,8 +42,16 @@ class ProductService {
     maxPrice?: number,
     sort?: string,
     categoryId?: string,
-    search?: string
-  ): Promise<{ products: Product[]; pagination: { total: number; page: number; limit: number; totalPages: number } }> {
+    search?: string,
+  ): Promise<{
+    products: Product[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
     const res = await axiosInstance.get('/products', {
       params: { page, limit, minPrice, maxPrice, sort, categoryId, search },
     });

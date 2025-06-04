@@ -27,11 +27,32 @@ interface CloudinaryResponse {
   original_filename: string;
 }
 
+export interface GetCategoriesParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export interface CategoryResponse {
+  categories: Category[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
 class CategoryService {
   // Get all categories
-  static async findAll(): Promise<Category[]> {
+  static async findAll(
+    params?: GetCategoriesParams,
+  ): Promise<CategoryResponse> {
     try {
-      const response = await axiosInstance.get('/categories');
+      const response = await axiosInstance.get('/categories', {
+        params,
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+      });
       return response.data;
     } catch (error: any) {
       console.error('Error fetching categories:', error);

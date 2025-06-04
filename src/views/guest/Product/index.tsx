@@ -60,8 +60,8 @@ const ProductView = () => {
 
   const fetchCategories = async () => {
     try {
-      const data = await CategoryService.findAll();
-      setCategories(data);
+      const response = await CategoryService.findAll();
+      setCategories(response.categories);
     } catch (error) {
       toast.error('Có lỗi xảy ra khi tải danh mục');
       console.error('Error fetching categories:', error);
@@ -78,7 +78,7 @@ const ProductView = () => {
         isPriceFilterEnabled ? priceRange[1] : undefined,
         sortBy,
         selectedCategory !== 'all' ? selectedCategory : undefined,
-        searchQuery || undefined
+        searchQuery || undefined,
       );
       setProducts(response.products);
       setTotalPages(response.pagination.totalPages);
@@ -97,7 +97,14 @@ const ProductView = () => {
   // Fetch products when any filter changes
   useEffect(() => {
     fetchProducts();
-  }, [currentPage, sortBy, selectedCategory, searchQuery, priceRange, isPriceFilterEnabled]);
+  }, [
+    currentPage,
+    sortBy,
+    selectedCategory,
+    searchQuery,
+    priceRange,
+    isPriceFilterEnabled,
+  ]);
 
   // Reset price filter when changing category or search
   useEffect(() => {
@@ -106,7 +113,6 @@ const ProductView = () => {
     setTempPriceRange([0, 50000000]);
   }, [selectedCategory, searchQuery]);
 
-  
   const handleAddToCart = (product: Product) => {
     if (!product.image_url) return;
     addItem({
@@ -200,10 +206,11 @@ const ProductView = () => {
                 <div className="space-y-2">
                   <button
                     onClick={() => setSelectedCategory('all')}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${selectedCategory === 'all'
+                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                      selectedCategory === 'all'
                         ? 'bg-[#E6A15A] text-white'
                         : 'hover:bg-[#F8F6F3] text-gray-700'
-                      }`}
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <FaHome className="text-lg" />
@@ -214,10 +221,11 @@ const ProductView = () => {
                     <button
                       key={category._id}
                       onClick={() => setSelectedCategory(category._id)}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${selectedCategory === category._id
+                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                        selectedCategory === category._id
                           ? 'bg-[#E6A15A] text-white'
                           : 'hover:bg-[#F8F6F3] text-gray-700'
-                        }`}
+                      }`}
                     >
                       <div className="flex items-center gap-3">
                         <span>{category.name}</span>
@@ -246,7 +254,10 @@ const ProductView = () => {
                       step="1000000"
                       value={tempPriceRange[0]}
                       onChange={(e) =>
-                        setTempPriceRange([Number(e.target.value), tempPriceRange[1]])
+                        setTempPriceRange([
+                          Number(e.target.value),
+                          tempPriceRange[1],
+                        ])
                       }
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     />
@@ -265,7 +276,10 @@ const ProductView = () => {
                       step="1000000"
                       value={tempPriceRange[1]}
                       onChange={(e) =>
-                        setTempPriceRange([tempPriceRange[0], Number(e.target.value)])
+                        setTempPriceRange([
+                          tempPriceRange[0],
+                          Number(e.target.value),
+                        ])
                       }
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     />
@@ -275,7 +289,8 @@ const ProductView = () => {
                   <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded-lg">
                     <span>Khoảng giá:</span>
                     <span>
-                      {tempPriceRange[0].toLocaleString('vi-VN')}đ - {tempPriceRange[1].toLocaleString('vi-VN')}đ
+                      {tempPriceRange[0].toLocaleString('vi-VN')}đ -{' '}
+                      {tempPriceRange[1].toLocaleString('vi-VN')}đ
                     </span>
                   </div>
 
@@ -358,7 +373,10 @@ const ProductView = () => {
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            onClick={(e) => { e.preventDefault(); handleAddToCart(product); }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleAddToCart(product);
+                            }}
                             className="ml-2 text-[#E6A15A] hover:text-[#B86B2B] transition-colors"
                           >
                             <FaShoppingCart className="text-xl" />
@@ -384,17 +402,22 @@ const ProductView = () => {
                           </motion.span>
 
                           {product.status && (
-                            <span className={`text-sm px-2 py-1 rounded-full flex items-center gap-1 ${product.status === 'active'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-800'
-                              }`}>
+                            <span
+                              className={`text-sm px-2 py-1 rounded-full flex items-center gap-1 ${
+                                product.status === 'active'
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}
+                            >
                               {product.status === 'active' ? (
                                 <>
-                                  <FaCheckCircle className="text-green-600" /> Còn hàng
+                                  <FaCheckCircle className="text-green-600" />{' '}
+                                  Còn hàng
                                 </>
                               ) : (
                                 <>
-                                  <FaTimesCircle className="text-gray-500" /> Hết hàng
+                                  <FaTimesCircle className="text-gray-500" />{' '}
+                                  Hết hàng
                                 </>
                               )}
                             </span>
@@ -411,18 +434,21 @@ const ProductView = () => {
             {totalPages > 1 && (
               <div className="mt-8 flex justify-center">
                 <div className="flex items-center gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`w-10 h-10 rounded-lg border ${currentPage === page
-                          ? 'border-[#E6A15A] text-[#E6A15A]'
-                          : 'border-gray-200 text-gray-500 hover:border-[#E6A15A] hover:text-[#E6A15A]'
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`w-10 h-10 rounded-lg border ${
+                          currentPage === page
+                            ? 'border-[#E6A15A] text-[#E6A15A]'
+                            : 'border-gray-200 text-gray-500 hover:border-[#E6A15A] hover:text-[#E6A15A]'
                         } flex items-center justify-center transition-colors`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                      >
+                        {page}
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
             )}

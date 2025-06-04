@@ -24,21 +24,27 @@ export default function StoreRequestsView() {
   const [storeRequests, setStoreRequests] = useState<StoreRequest[]>([]);
   const [totalRequests, setTotalRequests] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchStoreRequests = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const { data: fetchedRequests, total } =
-        await StoreService.getStoreRequests({
-          page: currentPage,
-          search: searchTerm,
-          status: statusFilter === 'ALL' ? undefined : statusFilter,
-        });
+      const {
+        requests: fetchedRequests,
+        total,
+        totalPages: fetchedTotalPages,
+      } = await StoreService.getStoreRequests({
+        page: currentPage,
+        limit: 10,
+        search: searchTerm,
+        status: statusFilter === 'ALL' ? undefined : statusFilter,
+      });
       console.log('StoreRequestsView: Fetched requests:', fetchedRequests);
       setStoreRequests(fetchedRequests);
       setTotalRequests(total);
+      setTotalPages(fetchedTotalPages);
     } catch (err) {
       console.error('Error fetching store requests:', err);
       setError(
@@ -115,7 +121,8 @@ export default function StoreRequestsView() {
   const columns = [
     {
       header: 'STT',
-      cell: (value: any, row: StoreRequest, rowIndex: number) => rowIndex + 1,
+      cell: (value: any, row: StoreRequest, rowIndex: number) =>
+        (currentPage - 1) * 10 + rowIndex + 1,
     },
     {
       header: 'Tên cửa hàng',
@@ -244,7 +251,18 @@ export default function StoreRequestsView() {
       {isLoading ? (
         <div className="text-center text-[#7A5C3E]">Đang tải...</div>
       ) : error ? null : (
-        <DataTable columns={columns as any} data={storeRequests} />
+        <DataTable
+          columns={columns as any}
+          data={storeRequests}
+          pagination={{
+            currentPage,
+            totalPages,
+            onPageChange: (page) => {
+              setCurrentPage(page);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+          }}
+        />
       )}
 
       {/* View Modal */}
