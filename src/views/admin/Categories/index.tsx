@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DataTable } from '@/components/admin/common/DataTable';
+import { FaSearch } from 'react-icons/fa';
 
 import { Category } from '@/types/category';
 import { toast } from 'react-hot-toast';
@@ -16,6 +17,9 @@ export default function CategoriesView() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -30,8 +34,13 @@ export default function CategoriesView() {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await CategoryService.findAll();
-      setCategories(data);
+      const response = await CategoryService.findAll({
+        page: currentPage,
+        limit: 10,
+        search: searchTerm,
+      });
+      setCategories(response.categories);
+      setTotalPages(response.totalPages);
     } catch (err) {
       console.error('Error fetching categories:', err);
       setError(
@@ -46,12 +55,9 @@ export default function CategoriesView() {
   };
 
   useEffect(() => {
+    console.log('useEffect triggered, fetching data for page:', currentPage);
     fetchCategories();
-  }, []);
-
-  const handleAddClick = () => {
-    console.log('Add new category clicked');
-  };
+  }, [currentPage, searchTerm]);
 
   const handleEditClick = (category: Category) => {
     setCategoryToEdit(category);
@@ -113,7 +119,8 @@ export default function CategoriesView() {
   const columns = [
     {
       header: 'STT',
-      cell: (value: any, row: Category, rowIndex: number) => rowIndex + 1,
+      cell: (value: any, row: Category, rowIndex: number) =>
+        (currentPage - 1) * 10 + rowIndex + 1,
     },
     {
       header: 'Ảnh',
@@ -129,7 +136,6 @@ export default function CategoriesView() {
           </div>
         ) : null,
     },
-
     {
       header: 'Tên danh mục',
       accessor: 'name' as keyof Category,
@@ -180,12 +186,26 @@ export default function CategoriesView() {
         </p>
       </div>
 
-      <button
-        onClick={() => setIsCreateModalOpen(true)}
-        className="px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700"
-      >
-        Thêm danh mục mới
-      </button>
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo tên danh mục..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#E5E3DF] focus:outline-none focus:ring-2 focus:ring-[#E6A15A] focus:border-transparent"
+            />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7A5C3E]" />
+          </div>
+        </div>
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700"
+        >
+          Thêm danh mục mới
+        </button>
+      </div>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
@@ -196,7 +216,19 @@ export default function CategoriesView() {
       {isLoading ? (
         <div className="text-center text-[#7A5C3E]">Đang tải...</div>
       ) : error ? null : (
-        <DataTable columns={columns as any} data={categories} />
+        <DataTable
+          columns={columns as any}
+          data={categories}
+          pagination={{
+            currentPage,
+            totalPages,
+            onPageChange: (page) => {
+              console.log('Page change requested to page:', page);
+              setCurrentPage(page);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+          }}
+        />
       )}
 
       <Modal

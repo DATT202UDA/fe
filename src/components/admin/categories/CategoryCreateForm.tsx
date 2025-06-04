@@ -39,7 +39,7 @@ export function CategoryCreateForm({
       const createData: CreateCategoryDto = {
         name: name.trim(),
         description: description.trim() || undefined,
-        image: image_url || undefined,
+        image_url: image_url || undefined,
       };
 
       await onSubmit(createData);

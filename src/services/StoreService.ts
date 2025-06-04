@@ -1,43 +1,61 @@
 import axiosInstance from '@/lib/axios';
 
+export enum StoreStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  COMPLETED = 'completed',
+}
+
 export interface Store {
+  _id: string;
+  name: string;
+  address: string;
+  description?: string;
+  phone: string;
+  email: string;
+  rate_avg: number;
+  image_url?: string;
+  user_id: string;
+  status: StoreStatus;
+  created_at: string;
+  updated_at?: string;
+  deleted_at?: string;
+  processed_by?: string;
+  processed_at?: string;
+  rejection_reason?: string;
+  note?: string;
+}
+
+export interface StoreRequest {
   _id: string;
   name: string;
   address: string;
   description: string;
   phone: string;
   email: string;
-  rate_avg: number;
-  image_url: string;
-  user_id: string;
-  status: 'pending' | 'complete';
-  created_at: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface StoreRequest {
-  _id: string;
-  store_name: string;
-  address: string;
-  description: string;
-  phone: string;
-  email: string;
-  owner: {
+  image_url?: string;
+  user_id: {
     _id: string;
     full_name: string;
     email: string;
-    phone?: string;
+    username: string;
   };
   status: 'pending' | 'approved' | 'rejected';
   rejection_reason?: string;
   created_at: string;
   updated_at?: string;
+  processed_by?: {
+    _id: string;
+    username: string;
+    full_name: string;
+  };
+  processed_at?: string;
 }
 
 export interface CreateStoreDto {
   name: string;
-  description: string;
+  description?: string;
   address: string;
   phone: string;
   email: string;
@@ -46,8 +64,14 @@ export interface CreateStoreDto {
 
 export interface UpdateStoreDto extends Partial<CreateStoreDto> {}
 
+export interface UpdateStoreStatusDto {
+  status: StoreStatus;
+  note?: string;
+  rejection_reason?: string;
+}
+
 export interface GetStoresParams {
-  status?: 'pending' | 'complete';
+  status?: StoreStatus;
   page?: number;
   limit?: number;
   search?: string;
@@ -60,19 +84,51 @@ export interface GetStoreRequestsParams {
   search?: string;
 }
 
+// Define interface for the actual backend response structure for store requests
+export interface StoreRequestsApiResponse {
+  requests: StoreRequest[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface StoreResponse {
+  stores: Store[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface CreateStoreRequestDto extends CreateStoreDto {}
+
 class StoreService {
   // Store Request Methods
+  static async getUserStoreRequest(): Promise<StoreRequest | null> {
+    try {
+      const response = await axiosInstance.get('/stores/requests');
+      return response.data;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        return null;
+      }
+      console.error('Error fetching user store request:', error);
+      throw new Error(
+        error?.response?.data?.message || 'Failed to fetch store request',
+      );
+    }
+  }
+
   static async getStoreRequests(
     params?: GetStoreRequestsParams,
-  ): Promise<{ data: StoreRequest[]; total: number }> {
+  ): Promise<StoreRequestsApiResponse> {
     try {
-      const response = await axiosInstance.get('/stores/admin/requests', {
-        params,
-      });
-      return {
-        data: response.data.requests,
-        total: response.data.total,
-      };
+      const response = await axiosInstance.get<StoreRequestsApiResponse>(
+        '/stores/admin/requests',
+        {
+          params,
+        },
+      );
+      return response.data;
     } catch (error: any) {
       console.error('Error fetching store requests:', error);
       throw new Error(
@@ -103,26 +159,32 @@ class StoreService {
   }
 
   // Store Methods
-  // Get all stores
-  static async getAll(params?: GetStoresParams): Promise<Store[]> {
+  static async getAll(params?: GetStoresParams): Promise<StoreResponse> {
     try {
       const response = await axiosInstance.get('/stores', { params });
-      console.log('StoreService: Get all stores response data:', response.data);
-      return response.data as Store[];
+      return response.data;
     } catch (error: any) {
       console.error('Error fetching stores:', error);
-      console.error('Error details:', {
-        status: error?.response?.status,
-        data: error?.response?.data,
-        message: error?.message,
-      });
       throw new Error(
         error?.response?.data?.message || 'Failed to fetch stores',
       );
     }
   }
 
-  // Get store by ID
+  static async getPendingStores(
+    params?: GetStoresParams,
+  ): Promise<StoreResponse> {
+    try {
+      const response = await axiosInstance.get('/stores/pending', { params });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching pending stores:', error);
+      throw new Error(
+        error?.response?.data?.message || 'Failed to fetch pending stores',
+      );
+    }
+  }
+
   static async getById(storeId: string): Promise<Store> {
     try {
       const response = await axiosInstance.get(`/stores/${storeId}`);
@@ -135,20 +197,29 @@ class StoreService {
     }
   }
 
-  // Get current user's store
-  static async getMyStore(): Promise<Store> {
+  static async getMyStore(): Promise<Store | null> {
     try {
       const response = await axiosInstance.get('/stores/my-store');
-      return response.data;
+      if (
+        response.data &&
+        response.data.stores &&
+        response.data.stores.length > 0
+      ) {
+        return response.data.stores[0];
+      }
+      return null;
     } catch (error: any) {
       console.error('Error fetching my store:', error);
+      if (error.response?.status === 404) {
+        return null;
+      }
       throw new Error(
-        error?.response?.data?.message || 'Failed to fetch my store',
+        error?.response?.data?.message ||
+          'Không thể lấy thông tin cửa hàng của bạn',
       );
     }
   }
 
-  // Create store
   static async create(data: CreateStoreDto): Promise<Store> {
     try {
       const response = await axiosInstance.post('/stores', data);
@@ -161,52 +232,27 @@ class StoreService {
     }
   }
 
-  // Update store
-  static async update(
-    storeId: string,
-    data: FormData | Partial<UpdateStoreDto>,
-  ): Promise<Store> {
+  static async update(storeId: string, data: UpdateStoreDto): Promise<Store> {
     try {
-      let response;
-
-      if (data instanceof FormData) {
-        // If data is FormData, send a PATCH request with FormData body
-        console.log('StoreService: Sending PATCH with FormData');
-        response = await axiosInstance.patch(`/stores/${storeId}`, data, {
-          headers: {
-            // Axios sets multipart/form-data header automatically with FormData
-            // No need to set Content-Type explicitly here.
-          },
-        });
-      } else {
-        // If data is JSON, send a PATCH request with JSON body
-        console.log('StoreService: Sending PATCH with JSON data', data);
-        response = await axiosInstance.patch(`/stores/${storeId}`, data);
-      }
-
+      const response = await axiosInstance.put(`/stores/${storeId}`, data);
       return response.data;
     } catch (error: any) {
       console.error('Error updating store:', error);
-      console.error('Error details:', {
-        status: error?.response?.status,
-        data: error?.response?.data,
-        message: error?.message,
-      });
       throw new Error(
         error?.response?.data?.message || 'Failed to update store',
       );
     }
   }
 
-  // Update store status (admin)
   static async updateStatus(
     storeId: string,
-    status: 'pending' | 'complete',
+    data: UpdateStoreStatusDto,
   ): Promise<Store> {
     try {
-      const response = await axiosInstance.put(`/stores/${storeId}/status`, {
-        status,
-      });
+      const response = await axiosInstance.put(
+        `/stores/${storeId}/status`,
+        data,
+      );
       return response.data;
     } catch (error: any) {
       console.error('Error updating store status:', error);
@@ -216,7 +262,6 @@ class StoreService {
     }
   }
 
-  // Delete store
   static async delete(storeId: string): Promise<void> {
     try {
       await axiosInstance.delete(`/stores/${storeId}`);
@@ -228,7 +273,6 @@ class StoreService {
     }
   }
 
-  // Upload store image
   static async uploadImage(file: File): Promise<{ url: string }> {
     try {
       const formData = new FormData();
@@ -244,6 +288,20 @@ class StoreService {
       console.error('Error uploading image:', error);
       throw new Error(
         error?.response?.data?.message || 'Failed to upload image',
+      );
+    }
+  }
+
+  static async createStoreRequest(
+    data: CreateStoreRequestDto,
+  ): Promise<StoreRequest> {
+    try {
+      const response = await axiosInstance.post('/stores/requests', data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating store request:', error);
+      throw new Error(
+        error?.response?.data?.message || 'Failed to create store request',
       );
     }
   }
