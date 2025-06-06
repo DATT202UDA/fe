@@ -16,7 +16,6 @@ interface RegisterUser {
 class AuthService {
   static async register(userData: RegisterUser) {
     try {
-      console.log(userData, 'cpolafdsaf');
       const response = await axiosInstance.post('/auth/register', userData);
       return response.data;
     } catch (error: any) {

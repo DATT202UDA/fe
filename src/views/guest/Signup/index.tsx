@@ -64,7 +64,6 @@ const SignupView = () => {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    console.log(data, 'cpolafdsaf');
     setIsLoading(true);
     try {
       const registerData = {
