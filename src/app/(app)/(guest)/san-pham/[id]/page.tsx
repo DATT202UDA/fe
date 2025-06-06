@@ -22,6 +22,7 @@ import ProductService, { Product } from '@/services/ProductService';
 import ShopService, { StoreData } from '@/services/ShopService';
 import { toast } from 'react-hot-toast';
 import { AddToCartButton } from '@/components/Common/AddToCartButton';
+import Link from 'next/link';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -238,9 +239,11 @@ const ProductDetailPage = () => {
                     />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-[#7A5C3E]">
-                      {store.name}
-                    </h3>
+                    <Link href={`/cua-hang/${store._id}`} className="hover:underline">
+                      <h3 className="text-lg font-semibold text-[#7A5C3E]">
+                        {store.name}
+                      </h3>
+                    </Link>
                     <div className="flex items-center gap-1 text-yellow-400">
                       <FiStar className="w-4 h-4 fill-current" />
                       <span className="text-sm text-gray-600">
