@@ -70,6 +70,7 @@ export const authOptions: AuthOptions = {
         token.refreshToken = user.refreshToken;
         token.exp = Math.floor(Date.now() / 1000) + user.expiresIn;
         token.role = user.role;
+        token.fullName = user.fullName;
       }
 
       if (token.exp && Date.now() >= (token.exp - 300) * 1000) {
