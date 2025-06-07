@@ -38,23 +38,8 @@ class ProfileService {
       if (!response.data) {
         throw new Error('Không nhận được dữ liệu từ server');
       }
-      return {
-        username: response.data.username || '',
-        fullName: response.data.full_name || '',
-        email: response.data.email || '',
-        phone: response.data.phone || '',
-        avatar: response.data.avatar || '',
-        address: response.data.address || '',
-        zalo: response.data.zalo || '',
-        facebook: response.data.facebook || '',
-        gender: response.data.gender || '',
-        school: response.data.school || '',
-        joinDate: response.data.created_at || '',
-        totalOrders: response.data.totalOrders || 0,
-        wishlistItems: response.data.wishlistItems || 0,
-        savedAddresses: response.data.savedAddresses || 0,
-        savedCards: response.data.savedCards || 0,
-      };
+
+      return response.data;
     } catch (error: any) {
       console.error('Error fetching profile:', error);
       if (error.response?.status === 401) {
@@ -107,11 +92,15 @@ class ProfileService {
       formData.append('file', file);
 
       // Upload file
-      const uploadResponse = await axiosInstance.post('/upload/single', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+      const uploadResponse = await axiosInstance.post(
+        '/upload/single',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         },
-      });
+      );
 
       if (!uploadResponse.data?.url) {
         throw new Error('Không nhận được URL ảnh từ server');

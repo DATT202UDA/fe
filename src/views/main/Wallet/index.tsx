@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import DepositService from '@/services/TransactionService';
 import toast from 'react-hot-toast';
+import { useInfo } from '@/contexts/InfoContext';
 
 const WalletView = () => {
   const { data: session } = useSession();
@@ -18,6 +19,7 @@ const WalletView = () => {
   const qrValue = '/images/qr.png';
   // Giả lập số dư tài khoản
   const balance = 1500000;
+  const { userInfo } = useInfo();
 
   const { register, handleSubmit, reset } = useForm<{
     transactionCode: string;
@@ -66,7 +68,7 @@ const WalletView = () => {
           <div className="flex flex-col items-center">
             <p className="text-gray-600 mb-2">Số dư tài khoản</p>
             <p className="text-3xl font-bold text-[#7A5C3E]">
-              {balance.toLocaleString('vi-VN')} đ
+              {userInfo?.balance.toLocaleString('vi-VN')} đ
             </p>
           </div>
         </motion.div>
