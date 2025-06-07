@@ -101,6 +101,31 @@ export interface StoreResponse {
 
 export interface CreateStoreRequestDto extends CreateStoreDto {}
 
+export interface PopulatedUser {
+  avatar: string;
+  _id: string;
+  username: string;
+  full_name: string;
+}
+
+export interface StoreReview {
+  createdAt: string | number | Date;
+  updatedAt: string | number | Date;
+  _id: string;
+  store_id: string;
+  user_id: string | PopulatedUser;
+  rating: number;
+  comment: string;
+  
+}
+
+export interface StoreReviewResponse {
+  reviews: StoreReview[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
 class StoreService {
   // Store Request Methods
   static async getUserStoreRequest(): Promise<StoreRequest | null> {
@@ -304,6 +329,32 @@ class StoreService {
         error?.response?.data?.message || 'Failed to create store request',
       );
     }
+  }
+
+  static async createReview(
+    storeId: string,
+    data: { rating: number; comment: string },
+  ): Promise<StoreReview> {
+    const response = await axiosInstance.post(
+      `/stores/${storeId}/reviews`,
+      data,
+    );
+    return response.data;
+  }
+
+  static async getStoreReviews(
+    storeId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<StoreReviewResponse> {
+    const response = await axiosInstance.get(`/stores/${storeId}/reviews`, {
+      params: { page, limit },
+    });
+    return response.data;
+  }
+
+  static async deleteReview(reviewId: string): Promise<void> {
+    await axiosInstance.delete(`/stores/reviews/${reviewId}`);
   }
 }
 
