@@ -357,72 +357,73 @@ const ProductView = () => {
                       whileHover={{ scale: 1.02 }}
                       className="bg-white rounded-2xl shadow-xl border border-gray-200 hover:border-[#E6A15A] hover:shadow-2xl transition-all duration-500"
                     >
-                      <div className="relative pt-[100%]">
-                        <Image
-                          src={product.image_url || '/placeholder.png'}
-                          alt={product.name}
-                          fill
-                          className="object-cover rounded-t-2xl"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-[#5C3D2E] text-lg line-clamp-2 flex-1 hover:text-[#E6A15A] transition-colors">
-                            {product.name}
-                          </h3>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleAddToCart(product);
-                            }}
-                            className="ml-2 text-[#E6A15A] hover:text-[#B86B2B] transition-colors"
-                          >
-                            <FaShoppingCart className="text-xl" />
-                          </motion.button>
+                      <Link href={`/san-pham/${product._id}`} className="block">
+                        <div className="relative pt-[100%]">
+                          <Image
+                            src={product.image_url || '/placeholder.png'}
+                            alt={product.name}
+                            fill
+                            className="object-cover rounded-t-2xl"
+                          />
                         </div>
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-semibold text-[#5C3D2E] text-lg line-clamp-2 flex-1 hover:text-[#E6A15A] transition-colors">
+                              {product.name}
+                            </h3>
+                          </div>
 
-                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                          <span>
-                            {typeof product.store_id === 'object'
-                              ? product.store_id.name
-                              : 'Cửa hàng'}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <motion.span
-                            initial={{ scale: 0.95 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 0.3 }}
-                            className="text-lg font-bold text-[#E6A15A]"
-                          >
-                            {product.price.toLocaleString('vi-VN')}đ
-                          </motion.span>
-
-                          {product.status && (
-                            <span
-                              className={`text-sm px-2 py-1 rounded-full flex items-center gap-1 ${
-                                product.status === 'active'
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}
-                            >
-                              {product.status === 'active' ? (
-                                <>
-                                  <FaCheckCircle className="text-green-600" />{' '}
-                                  Còn hàng
-                                </>
-                              ) : (
-                                <>
-                                  <FaTimesCircle className="text-gray-500" />{' '}
-                                  Hết hàng
-                                </>
-                              )}
+                          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                            <span>
+                              {typeof product.store_id === 'object'
+                                ? product.store_id.name
+                                : 'Cửa hàng'}
                             </span>
-                          )}
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <motion.span
+                              initial={{ scale: 0.95 }}
+                              animate={{ scale: 1 }}
+                              transition={{ duration: 0.3 }}
+                              className="text-lg font-bold text-[#E6A15A]"
+                            >
+                              {product.price.toLocaleString('vi-VN')}đ
+                            </motion.span>
+
+                            {product.status && (
+                              <span
+                                className={`text-sm px-2 py-1 rounded-full flex items-center gap-1 ${
+                                  product.status === 'active'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}
+                              >
+                                {product.status === 'active' ? (
+                                  <>
+                                    <FaCheckCircle className="text-green-600" />{' '}
+                                    Còn hàng
+                                  </>
+                                ) : (
+                                  <>
+                                    <FaTimesCircle className="text-gray-500" />{' '}
+                                    Hết hàng
+                                  </>
+                                )}
+                              </span>
+                            )}
+                          </div>
                         </div>
+                      </Link>
+                      <div className="absolute top-4 right-4">
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => handleAddToCart(product)}
+                          className="text-[#E6A15A] hover:text-[#B86B2B] transition-colors bg-white rounded-full p-2 shadow-md"
+                        >
+                          <FaShoppingCart className="text-xl" />
+                        </motion.button>
                       </div>
                     </motion.div>
                   </div>

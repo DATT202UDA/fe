@@ -1,8 +1,9 @@
 import axiosInstance from '@/lib/axios';
 
 export interface UserProfile {
+  _id: string;
   username: string;
-  fullName: string;
+  full_name: string;
   email: string;
   phone: string;
   avatar: string;
@@ -30,6 +31,11 @@ export interface UpdateProfileData {
   gender?: string;
   school?: string;
   avatar?: string;
+}
+
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
 }
 
 class ProfileService {
@@ -62,8 +68,9 @@ class ProfileService {
         throw new Error('Không nhận được dữ liệu từ server');
       }
       return {
+        _id: response.data._id || '',
         username: response.data.username || '',
-        fullName: response.data.full_name || '',
+        full_name: response.data.full_name || '',
         email: response.data.email || '',
         phone: response.data.phone || '',
         avatar: response.data.avatar || '',
@@ -119,6 +126,21 @@ class ProfileService {
     } catch (error: any) {
       console.error('Error uploading avatar:', error);
       throw new Error('Không thể tải lên ảnh đại diện');
+    }
+  }
+
+  static async changePassword(
+    data: ChangePasswordData,
+  ): Promise<{ message: string }> {
+    try {
+      const response = await axiosInstance.post('/users/change-password', data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+
+      throw new Error(
+        error?.response?.data?.message || 'Không thể thay đổi mật khẩu',
+      );
     }
   }
 }

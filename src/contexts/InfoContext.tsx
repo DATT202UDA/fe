@@ -6,7 +6,7 @@ import axiosInstance from '@/lib/axios';
 import ProfileService from '@/services/ProfileService';
 
 interface UserInfo {
-  _id: string;
+  id: string;
   username: string;
   email: string;
   full_name: string;
@@ -44,7 +44,10 @@ export function InfoProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       const response = await ProfileService.getProfile();
       console.log(response, 'response');
-      setUserInfo(response);
+      setUserInfo({
+        ...response,
+        id: response._id as string,
+      });
     } catch (err) {
       setError('Failed to fetch user information');
       console.error('Error fetching user info:', err);

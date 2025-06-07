@@ -2,19 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import {
-  FiEdit2,
-  FiUser,
-  FiMail,
-  FiPhone,
-  FiCalendar,
-  FiMapPin,
-  FiFacebook,
-  FiInstagram,
-} from 'react-icons/fi';
+import { FiEdit2, FiUser, FiMail, FiPhone, FiCalendar, FiMapPin, FiFacebook, FiInstagram } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
 import ProfileService, { UserProfile } from '@/services/ProfileService';
 import { toast } from 'react-hot-toast';
+import { ChangePasswordForm } from './ChangePasswordForm';
 
 interface CustomSession {
   user: {
@@ -54,8 +46,9 @@ const formatDate = (dateString: string) => {
 export const ProfileInformation = () => {
   const { data: session } = useSession() as { data: CustomSession | null };
   const [profile, setProfile] = useState<UserProfile>({
+    _id: '',
     username: '',
-    fullName: '',
+    full_name: '',
     email: '',
     phone: '',
     avatar: '',
@@ -93,9 +86,7 @@ export const ProfileInformation = () => {
       setProfile(userData);
       setEditedProfile(userData);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch profile data',
-      );
+      setError(err instanceof Error ? err.message : 'Failed to fetch profile data');
       console.error('Error fetching profile:', err);
     } finally {
       setIsLoading(false);
@@ -103,7 +94,7 @@ export const ProfileInformation = () => {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setEditedProfile((prev) => ({
@@ -117,7 +108,7 @@ export const ProfileInformation = () => {
     try {
       const updatedProfile = await ProfileService.updateProfile({
         username: editedProfile.username,
-        full_name: editedProfile.fullName,
+        full_name: editedProfile.full_name,
         email: editedProfile.email,
         phone: editedProfile.phone,
         address: editedProfile.address,
@@ -160,9 +151,7 @@ export const ProfileInformation = () => {
     } catch (err) {
       console.error('Error uploading avatar:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload avatar');
-      toast.error(
-        err instanceof Error ? err.message : 'Cập nhật ảnh đại diện thất bại!',
-      );
+      toast.error(err instanceof Error ? err.message : 'Cập nhật ảnh đại diện thất bại!');
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -199,11 +188,7 @@ export const ProfileInformation = () => {
               {/* Avatar Display */}
               <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-[#B86B2B] shadow-lg">
                 <Image
-                  src={
-                    avatarPreview ||
-                    editedProfile.avatar ||
-                    '/images/default-avatar.png'
-                  }
+                  src={avatarPreview || editedProfile.avatar || '/images/default-avatar.png'}
                   alt="Profile Avatar"
                   width={144}
                   height={144}
@@ -248,7 +233,7 @@ export const ProfileInformation = () => {
             )}
 
             <h2 className="text-2xl font-bold text-[#7A5C3E] mb-2">
-              {profile.fullName || profile.username}
+              {profile.full_name || profile.username}
             </h2>
             {profile.joinDate && (
               <p className="text-gray-600 flex items-center gap-2">
@@ -258,8 +243,7 @@ export const ProfileInformation = () => {
             )}
             {/* Placeholder for other badges/info if needed */}
             <div className="mt-4 flex gap-4">
-              {/* Add badge/icon elements here based on the image */}{' '}
-              {/* Example: */}
+              {/* Add badge/icon elements here based on the image */} {/* Example: */}
               {/* Reverted back to light theme style */}
             </div>
             <div className="w-full border-t border-gray-200 mt-6 pt-6 flex justify-center">
@@ -294,9 +278,7 @@ export const ProfileInformation = () => {
                   <input
                     type="text"
                     name="username"
-                    value={
-                      isEditing ? editedProfile.username : profile.username
-                    }
+                    value={isEditing ? editedProfile.username : profile.username}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
@@ -311,9 +293,7 @@ export const ProfileInformation = () => {
                   <input
                     type="text"
                     name="fullName"
-                    value={
-                      isEditing ? editedProfile.fullName : profile.fullName
-                    }
+                    value={isEditing ? editedProfile.full_name : profile.full_name}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
@@ -373,9 +353,7 @@ export const ProfileInformation = () => {
                   <input
                     type="text"
                     name="facebook"
-                    value={
-                      isEditing ? editedProfile.facebook : profile.facebook
-                    }
+                    value={isEditing ? editedProfile.facebook : profile.facebook}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     className="w-full px-4 py-3 border-2 border-[#E5E3DF] rounded-xl focus:outline-none focus:border-[#B86B2B] focus:ring-2 focus:ring-[#B86B2B]/20 disabled:bg-gray-50 bg-white transition-all"
@@ -449,10 +427,18 @@ export const ProfileInformation = () => {
                   </button>
                 </div>
               )}
+              
             </form>
+            <ChangePasswordForm />
+            {/* Add Change Password Form */}
+            
           </div>
+          
         </div>
+        
       </div>
+      
     </div>
   );
 };
+
