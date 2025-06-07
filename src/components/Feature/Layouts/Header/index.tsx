@@ -179,7 +179,7 @@ const Header = () => {
                             onClick={() => setIsProfileDropdownOpen(false)}
                           >
                             <FaBox className="mr-3 text-[#B86B2B]" size={16} />
-                            <span>Quản lý sản phẩm</span>
+                            <span>Quản lý cửa hàng</span>
                           </Link>
                           <Link
                             href="/quan-ly-vi-tien"
@@ -191,6 +191,14 @@ const Header = () => {
                               size={16}
                             />
                             <span>Quản lý ví tiền</span>
+                          </Link>
+                          <Link
+                            href="/mua"
+                            className="flex items-center px-4 py-2.5 text-[#7A5C3E] hover:bg-[#F5E9DA] transition-colors duration-200"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            <FaBox className="mr-3 text-[#B86B2B]" size={16} />
+                            <span>Đơn mua</span>
                           </Link>
                           {session?.user?.role === 'admin' && (
                             <Link

@@ -51,6 +51,45 @@ const ChatWidget = () => {
     }
   }, [messages, botTyping]);
 
+  const handleTopProducts = async () => {
+    setIsLoading(true);
+    setBotTyping('');
+    try {
+      const res = await ChatService.sendMessage(
+        'Top 10 sản phẩm bán chạy nhất',
+      );
+      let botMsg = '';
+      for (let i = 0; i < res.length; i++) {
+        botMsg += res[i];
+        setBotTyping(botMsg);
+        await new Promise((r) => setTimeout(r, 18));
+      }
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: prev.length + 1,
+          text: res,
+          sender: 'bot',
+          timestamp: new Date(),
+        },
+      ]);
+      setBotTyping('');
+    } catch (e: any) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: prev.length + 1,
+          text:
+            e.message || 'Có lỗi khi lấy thông tin sản phẩm. Vui lòng thử lại.',
+          sender: 'bot',
+          timestamp: new Date(),
+        },
+      ]);
+      setBotTyping('');
+    }
+    setIsLoading(false);
+  };
+
   const handleSendMessage = async () => {
     if (message.trim()) {
       setMessages([
@@ -211,6 +250,33 @@ const ChatWidget = () => {
                   </div>
                 </div>
               )}
+              {/* Only show Top 10 button at the bottom if only welcome message exists */}
+              {messages.length === 1 && !isLoading && !botTyping && (
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={handleTopProducts}
+                    className="bg-[#B86B2B]/90 hover:bg-[#E6A15A]/90 text-white text-sm py-2 px-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2 animate-pulse border border-white/20 backdrop-blur-sm"
+                  >
+                    <FaRobot size={16} className="animate-bounce" />
+                    Top 10 sản phẩm bán chạy nhất
+                  </button>
+                </div>
+              )}
+              {/* Show Top 10 button after bot response */}
+              {messages.length > 1 &&
+                !isLoading &&
+                !botTyping &&
+                messages[messages.length - 1].sender === 'bot' && (
+                  <div className="flex justify-center mt-4">
+                    <button
+                      onClick={handleTopProducts}
+                      className="bg-[#B86B2B]/90 hover:bg-[#E6A15A]/90 text-white text-sm py-2 px-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2 animate-pulse border border-white/20 backdrop-blur-sm"
+                    >
+                      <FaRobot size={16} className="animate-bounce" />
+                      Top 10 sản phẩm bán chạy nhất
+                    </button>
+                  </div>
+                )}
               <div ref={chatEndRef} />
             </div>
 

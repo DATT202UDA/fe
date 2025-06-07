@@ -19,6 +19,7 @@ export interface UserProfile {
 }
 
 export interface UpdateProfileData {
+  _id?: string;
   username?: string;
   full_name?: string;
   email?: string;
@@ -39,7 +40,10 @@ class ProfileService {
         throw new Error('Không nhận được dữ liệu từ server');
       }
 
-      return response.data;
+      return {
+        ...response.data,
+        id: response.data._id as string,
+      };
     } catch (error: any) {
       console.error('Error fetching profile:', error);
       if (error.response?.status === 401) {
