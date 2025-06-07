@@ -9,6 +9,8 @@ import { useState } from 'react';
 import { orderService, Currency, OrderItem } from '@/services/OrderService';
 import { redirect, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { toast } from 'react-hot-toast';
+import { FaSpinner } from 'react-icons/fa';
 
 export default function CartPage() {
   const router = useRouter();
@@ -53,7 +55,7 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     if (selectedItemsList.length === 0) {
-      alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+      toast.error('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
       return;
     }
     setShowConfirmationModal(true);
@@ -85,13 +87,15 @@ export default function CartPage() {
       const response = await orderService.createOrder(orderData);
 
       if (response.message === 'success') {
-        alert('Đặt hàng thành công!');
+        toast.success('Đặt hàng thành công!');
         selectedItemsList.forEach((item) => removeItem(item.id));
         setShowConfirmationModal(false);
-        router.push('/don-hang'); // Redirect to orders page
+        router.push('/mua'); // Redirect to orders page
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng');
+      toast.error(
+        error.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -333,7 +337,14 @@ export default function CartPage() {
                 disabled={isSubmitting}
                 className="flex-1 py-3 bg-[#B86B2B] text-white rounded-xl hover:bg-[#E6A15A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Đang xử lý...' : 'Xác nhận đặt hàng'}
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <FaSpinner className="w-4 h-4 animate-spin" />
+                    Đang xử lý...
+                  </div>
+                ) : (
+                  'Xác nhận đặt hàng'
+                )}
               </button>
             </div>
           </div>

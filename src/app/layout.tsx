@@ -3,6 +3,7 @@ import { Noto_Sans } from 'next/font/google';
 import './globals.css';
 import ChatWidget from '@/components/Chat/ChatWidget';
 import NextTopLoader from 'nextjs-toploader';
+import { Toaster } from 'react-hot-toast';
 
 const quicksand = Noto_Sans({
   subsets: ['vietnamese', 'latin'],
@@ -23,7 +24,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" className={`${quicksand.variable}`}>
-      <body className={`${quicksand.className}`}>{children}</body>
+      <body className={`${quicksand.className}`}>
+        {children}
+        <Toaster position="top-right" />
+      </body>
     </html>
   );
 }
