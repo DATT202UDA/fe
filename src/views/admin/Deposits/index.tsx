@@ -58,7 +58,7 @@ const DepositsView = () => {
   const handleConfirm = async (transactionId: string) => {
     try {
       setActionLoading(true);
-      await TransactionService.updateTransactionStatus(transactionId);
+      await TransactionService.confirmTransaction(transactionId);
       setShowConfirmModal(false);
       setSelectedTransaction(null);
       toast.success('Xác nhận giao dịch thành công');
@@ -74,7 +74,7 @@ const DepositsView = () => {
   const handleReject = async (transactionId: string) => {
     try {
       setActionLoading(true);
-      await TransactionService.updateTransactionStatus(transactionId);
+      await TransactionService.rejectTransaction(transactionId);
       setShowRejectModal(false);
       setSelectedTransaction(null);
       toast.success('Từ chối giao dịch thành công');
@@ -417,7 +417,7 @@ const DepositsView = () => {
                 >
                   {actionLoading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                      <FaSpinner className="animate-spin mr-2" />
                       Đang xử lý...
                     </>
                   ) : (

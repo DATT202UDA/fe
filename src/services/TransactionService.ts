@@ -88,13 +88,23 @@ class TransactionService {
     return response.data;
   }
 
-  static async updateTransactionStatus(
+  static async confirmTransaction(
     transactionId: string,
   ): Promise<{ message: string; data: Transaction }> {
     const response = await axiosInstance.put<{
       message: string;
       data: Transaction;
     }>(`/transactions/${transactionId}/status`);
+    return response.data;
+  }
+
+  static async rejectTransaction(
+    transactionId: string,
+  ): Promise<{ message: string; data: Transaction }> {
+    const response = await axiosInstance.put<{
+      message: string;
+      data: Transaction;
+    }>(`/transactions/${transactionId}/reject`);
     return response.data;
   }
 }
