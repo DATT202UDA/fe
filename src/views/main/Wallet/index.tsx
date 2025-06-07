@@ -1,248 +1,174 @@
 'use client';
 
-import { useState } from 'react';
-import {
-  FaWallet,
-  FaMoneyBillWave,
-  FaExchangeAlt,
-  FaHistory,
-  FaChevronRight,
-  FaFilter,
-} from 'react-icons/fa';
+import { useForm } from 'react-hook-form';
+// import QRCode from 'qrcode.react';
 import { motion } from 'framer-motion';
-import ModernLoader from '@/components/Common/ModernLoader';
+// import axios from 'axios';
+// import axiosClient from '@/utils/axiosClient';
+import axiosInstance from '@/lib/axios';
+import Image from 'next/image';
+import { useSession } from 'next-auth/react';
+import DepositService from '@/services/TransactionService';
+import toast from 'react-hot-toast';
 
 const WalletView = () => {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [balance] = useState(1500000);
-  const [showFilter, setShowFilter] = useState(false);
+  const { data: session } = useSession();
 
-  const transactions = [
-    {
-      id: 1,
-      type: 'deposit',
-      amount: 500000,
-      date: '2024-03-20',
-      description: 'Nạp tiền qua ngân hàng',
-      status: 'completed',
-    },
-    {
-      id: 2,
-      type: 'withdraw',
-      amount: 200000,
-      date: '2024-03-19',
-      description: 'Rút tiền về tài khoản',
-      status: 'completed',
-    },
-    {
-      id: 3,
-      type: 'purchase',
-      amount: 300000,
-      date: '2024-03-18',
-      description: 'Mua sản phẩm gia dụng',
-      status: 'completed',
-    },
-  ];
+  console.log(session);
+  const qrValue = '/images/qr.png';
+  // Giả lập số dư tài khoản
+  const balance = 1500000;
 
-  const renderTransactionStatus = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <span className="px-3 py-1 text-xs font-medium text-green-600 bg-green-50 rounded-full border border-green-100">
-            Hoàn thành
-          </span>
-        );
-      case 'pending':
-        return (
-          <span className="px-3 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-full border border-yellow-100">
-            Đang xử lý
-          </span>
-        );
-      case 'failed':
-        return (
-          <span className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded-full border border-red-100">
-            Thất bại
-          </span>
-        );
-      default:
-        return null;
+  const { register, handleSubmit, reset } = useForm<{
+    transactionCode: string;
+    amount: number;
+  }>();
+
+  const onDeposit = handleSubmit(async (data) => {
+    // alert(`Gửi yêu cầu nạp tiền: ${JSON.stringify(data)}`);
+    // reset();
+    try {
+      console.log(data);
+      const res = await DepositService.deposit(
+        Number(data.amount),
+        data.transactionCode,
+      );
+
+      if (res.message === 'success') {
+        toast.success('Nạp tiền thành công, chờ admin xác nhận');
+      }
+    } catch (error: any) {
+      toast.error(error.response.data.message);
     }
+  });
+
+  const handleWithdrawClick = () => {
+    // TODO: mở modal hoặc chuyển trang rút tiền
+    alert('Chuyển đến form rút tiền');
   };
 
-  const renderTransactionType = (type: string) => {
-    switch (type) {
-      case 'deposit':
-        return <span className="text-green-600">+</span>;
-      case 'withdraw':
-        return <span className="text-red-600">-</span>;
-      case 'purchase':
-        return <span className="text-red-600">-</span>;
-      default:
-        return null;
-    }
+  const handleViewHistory = () => {
+    // TODO: mở modal hoặc chuyển trang lịch sử
+    alert('Chuyển đến lịch sử thanh toán');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="container mx-auto px-4">
-        <div className="max-w-5xl mx-auto">
-          {/* Header with Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="md:col-span-2 bg-white rounded-2xl shadow-lg p-6"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold text-[#7A5C3E]">
-                  Quản lý ví tiền
-                </h1>
-                <div className="w-12 h-12 bg-[#F5E9DA] rounded-full flex items-center justify-center">
-                  <FaWallet className="text-[#B86B2B]" size={20} />
-                </div>
-              </div>
-              <div className="flex items-baseline space-x-2">
-                <h2 className="text-4xl font-bold text-[#B86B2B]">
-                  {balance.toLocaleString('vi-VN')}đ
-                </h2>
-                <span className="text-sm text-gray-500">Số dư hiện tại</span>
-              </div>
-            </motion.div>
+        <h1 className="text-2xl font-bold text-[#7A5C3E] mb-6">Ví của bạn</h1>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white rounded-2xl shadow-lg p-6"
-            >
-              <h3 className="text-lg font-semibold text-[#7A5C3E] mb-4">
-                Thống kê
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500">Tổng nạp tiền</p>
-                  <p className="text-xl font-semibold text-green-600">
-                    +2,500,000đ
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Tổng chi tiêu</p>
-                  <p className="text-xl font-semibold text-red-600">
-                    -1,000,000đ
-                  </p>
-                </div>
-              </div>
-            </motion.div>
+        {/* Hiển thị số dư */}
+        <motion.div
+          className="bg-white rounded-2xl shadow-lg p-6 mb-8"
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="flex flex-col items-center">
+            <p className="text-gray-600 mb-2">Số dư tài khoản</p>
+            <p className="text-3xl font-bold text-[#7A5C3E]">
+              {balance.toLocaleString('vi-VN')} đ
+            </p>
           </div>
+        </motion.div>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all flex items-center space-x-4 border border-gray-100"
-            >
-              <div className="w-14 h-14 bg-[#F5E9DA] rounded-full flex items-center justify-center">
-                <FaMoneyBillWave className="text-[#B86B2B]" size={24} />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold text-[#7A5C3E] text-lg">Nạp tiền</p>
-                <p className="text-sm text-gray-500">Thêm tiền vào ví</p>
-              </div>
-            </motion.button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <motion.div
+            className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* 1. QR Code */}
+            <Image
+              src="/images/qr-code.png"
+              alt="QR Code"
+              width={300}
+              height={300}
+              className="w-[500px] h-[480px] object-cover rounded-lg border-2 border-[#E6A15A]"
+            />
+            <h2 className="text-lg font-semibold text-[#7A5C3E] mb-4">
+              Mã QR nạp tiền
+            </h2>
+            {/* lời nhắn */}
+            <p className="mt-4 text-gray-500 text-sm text-center">
+              Nhập lời nhắn: {session?.user?.fullName} -{' '}
+              <b className="text-red-500">mã giao dịch momo</b>
+            </p>
+            {/* <QRCode value={qrValue} size={160} /> */}
+            <p className="mt-4 text-red-500 text-sm text-start">
+              Lưu ý:
+              <br />
+              - Phải nhập lời nhắn để nhận tiền vào ví
+              <br />- Mã giao dịch momo là mã giao dịch của bạn khi nạp tiền vào
+              ví
+            </p>
+          </motion.div>
 
-            <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all flex items-center space-x-4 border border-gray-100"
-            >
-              <div className="w-14 h-14 bg-[#F5E9DA] rounded-full flex items-center justify-center">
-                <FaExchangeAlt className="text-[#B86B2B]" size={24} />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold text-[#7A5C3E] text-lg">Rút tiền</p>
-                <p className="text-sm text-gray-500">Chuyển về tài khoản</p>
-              </div>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all flex items-center space-x-4 border border-gray-100"
-            >
-              <div className="w-14 h-14 bg-[#F5E9DA] rounded-full flex items-center justify-center">
-                <FaHistory className="text-[#B86B2B]" size={24} />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold text-[#7A5C3E] text-lg">Lịch sử</p>
-                <p className="text-sm text-gray-500">Xem giao dịch</p>
-              </div>
-            </motion.button>
-          </div>
-
-          {/* Transaction History */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-[#7A5C3E]">
-                Lịch sử giao dịch
-              </h3>
-              <button
-                onClick={() => setShowFilter(!showFilter)}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-              >
-                <FaFilter className="text-[#7A5C3E]" size={14} />
-                <span className="text-sm text-[#7A5C3E]">Lọc</span>
-              </button>
+          {/* 2. Form Nạp tiền */}
+          <motion.form
+            onSubmit={onDeposit}
+            className="bg-white rounded-2xl shadow-lg p-6 flex flex-col gap-4"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <h2 className="text-lg font-semibold text-[#7A5C3E] mb-2">
+              Nạp tiền vào ví
+            </h2>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mã giao dịch
+              </label>
+              <input
+                {...register('transactionCode', { required: true })}
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] outline-none"
+                placeholder="Nhập mã giao dịch"
+              />
             </div>
-            <div className="divide-y divide-gray-100">
-              {transactions.map((transaction) => (
-                <motion.div
-                  key={transaction.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="p-6 hover:bg-gray-50 transition-colors group cursor-pointer"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-[#F5E9DA] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                        {transaction.type === 'deposit' ? (
-                          <FaMoneyBillWave
-                            className="text-[#B86B2B]"
-                            size={18}
-                          />
-                        ) : transaction.type === 'withdraw' ? (
-                          <FaExchangeAlt className="text-[#B86B2B]" size={18} />
-                        ) : (
-                          <FaWallet className="text-[#B86B2B]" size={18} />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-[#7A5C3E] group-hover:text-[#B86B2B] transition-colors">
-                          {transaction.description}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {transaction.date}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <p className="font-semibold text-lg">
-                          {renderTransactionType(transaction.type)}
-                          {transaction.amount.toLocaleString('vi-VN')}đ
-                        </p>
-                        {renderTransactionStatus(transaction.status)}
-                      </div>
-                      <FaChevronRight
-                        className="text-gray-400 group-hover:text-[#B86B2B] transition-colors"
-                        size={14}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Số tiền đã nạp
+              </label>
+              <input
+                {...register('amount', { required: true })}
+                type="number"
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] outline-none"
+                placeholder="Nhập số tiền (đ)"
+              />
             </div>
-          </div>
+            <button
+              type="submit"
+              className="mt-2 px-4 py-2 bg-[#E6A15A] text-white rounded-lg hover:bg-[#F0B97A] transition-colors font-semibold"
+            >
+              Gửi yêu cầu
+            </button>
+          </motion.form>
+
+          {/* 3. Nút Rút tiền */}
+          <motion.div
+            className="bg-white rounded-2xl shadow-lg p-6 flex items-center justify-center"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <button
+              onClick={handleWithdrawClick}
+              className="w-full py-3 bg-[#7A5C3E] text-white rounded-lg hover:bg-[#5a472f] transition-colors font-semibold"
+            >
+              Rút tiền
+            </button>
+          </motion.div>
+
+          {/* 4. Nút Xem lịch sử thanh toán */}
+          <motion.div
+            className="bg-white rounded-2xl shadow-lg p-6 flex items-center justify-center"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <button
+              onClick={handleViewHistory}
+              className="w-full py-3 border-2 border-[#E6A15A] text-[#E6A15A] rounded-lg hover:bg-[#FFFAF5] transition-colors font-semibold"
+            >
+              Xem lịch sử thanh toán
+            </button>
+          </motion.div>
         </div>
       </div>
     </div>

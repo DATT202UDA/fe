@@ -66,19 +66,11 @@ export const authOptions: AuthOptions = {
         token.id = user.id;
         token.username = user.username;
         token.email = user.email;
+        token.fullName = user.fullName;
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.exp = Math.floor(Date.now() / 1000) + user.expiresIn;
         token.role = user.role;
-      }
-
-      if (token.exp && Date.now() >= (token.exp - 300) * 1000) {
-        try {
-          const refreshedToken = await refreshAccessToken(token);
-          return refreshedToken;
-        } catch (error) {
-          return { ...token, error: 'RefreshAccessTokenError' };
-        }
       }
 
       return token;
@@ -105,37 +97,3 @@ export const authOptions: AuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
-
-async function refreshAccessToken(token: any) {
-  try {
-    if (!token.refreshToken) {
-      throw new Error('Missing refresh token');
-    }
-
-    const { data } = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
-      {
-        refreshToken: token.refreshToken,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-
-    const nowInSec = Math.floor(Date.now() / 1000);
-    const expiresIn = 60 * 60; // 1 giờ
-
-    return {
-      ...token,
-      accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
-      exp: nowInSec + expiresIn,
-      error: undefined,
-    };
-  } catch (error: any) {
-    console.error('Error refreshing access token:', error);
-    throw error;
-  }
-}

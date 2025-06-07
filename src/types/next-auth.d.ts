@@ -12,6 +12,7 @@ declare module 'next-auth' {
     refreshToken: string;
     expiresIn: number;
     role: string;
+    fullName: string;
   }
 
   interface Session {
@@ -24,6 +25,7 @@ declare module 'next-auth' {
       accessToken: string;
       refreshToken: string;
       role: string;
+      fullName: string;
     };
   }
 }
@@ -39,6 +41,7 @@ declare module 'next-auth/jwt' {
     refreshToken: string;
     exp: number;
     role: string;
+    fullName: string;
     error?: string;
   }
 }

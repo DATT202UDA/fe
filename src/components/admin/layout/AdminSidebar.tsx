@@ -9,6 +9,8 @@ import {
   FaExchangeAlt,
   FaTags,
   FaChartBar,
+  FaMoneyBill,
+  FaMoneyBillAlt,
 } from 'react-icons/fa';
 
 const menuItems = [
@@ -21,6 +23,11 @@ const menuItems = [
     title: 'Yêu cầu cửa hàng',
     icon: FaStore,
     href: '/admin/store-requests',
+  },
+  {
+    title: 'Yêu cầu nạp tiền',
+    icon: FaMoneyBillAlt,
+    href: '/admin/deposits',
   },
   {
     title: 'Quản lý cửa hàng',
