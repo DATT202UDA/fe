@@ -41,7 +41,7 @@ const Footer = () => {
 
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Company Info */}
           <div>
             <Link href="/" className="inline-block mb-6">
@@ -95,13 +95,13 @@ const Footer = () => {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/products"
+                  href="/san-pham"
                   className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
                 >
                   Sản phẩm
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link
                   href="/promotions"
                   className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
@@ -124,6 +124,14 @@ const Footer = () => {
                 >
                   Tin tức
                 </Link>
+              </li> */}
+              <li>
+                <Link
+                  href="/ve-chung-toi"
+                  className="text-[#7A5C3E] hover:text-[#B86B2B] transition"
+                >
+                  Về chúng tôi
+                </Link>
               </li>
               <li>
                 <Link
@@ -137,7 +145,7 @@ const Footer = () => {
           </div>
 
           {/* Customer Service */}
-          <div>
+          {/* <div>
             <h3 className="text-lg font-semibold text-[#B86B2B] mb-6">
               Chăm sóc khách hàng
             </h3>
@@ -183,7 +191,7 @@ const Footer = () => {
                 </Link>
               </li>
             </ul>
-          </div>
+          </div> */}
 
           {/* Contact Info */}
           <div>
@@ -194,16 +202,16 @@ const Footer = () => {
               <li className="flex items-start space-x-3">
                 <FaMapMarkerAlt className="text-[#B86B2B] mt-1" />
                 <span className="text-[#7A5C3E]">
-                  123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh
+                  151 Hồ Nguyền Trừng, Cẩm Lệ, Đà Nẵng
                 </span>
               </li>
               <li className="flex items-center space-x-3">
                 <FaPhoneAlt className="text-[#B86B2B]" />
-                <span className="text-[#7A5C3E]">1900-xxxx</span>
+                <span className="text-[#7A5C3E]">0362091690</span>
               </li>
               <li className="flex items-center space-x-3">
                 <FaEnvelope className="text-[#B86B2B]" />
-                <span className="text-[#7A5C3E]">info@giadung.com</span>
+                <span className="text-[#7A5C3E]">buichau40@gmail.com</span>
               </li>
             </ul>
           </div>

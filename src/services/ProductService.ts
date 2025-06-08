@@ -14,6 +14,7 @@ export interface Product {
   deleted_at?: string;
   updated_at?: string;
   image_url: string;
+  rate_avg: number;
 }
 
 export interface CreateProductDto {

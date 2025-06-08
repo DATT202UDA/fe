@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,10 +16,10 @@ interface AddToCartButtonProps {
   variant?: 'default' | 'full';
 }
 
-export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ 
+export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
   product,
   quantity = 1,
-  variant = 'default'
+  variant = 'default',
 }) => {
   const { addItem } = useCart();
   const [isAnimating, setIsAnimating] = useState(false);
@@ -71,7 +71,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     <>
       <button
         onClick={handleAddToCart}
-        className="inline-flex items-center px-6 py-3 bg-[#B86B2B] text-white rounded-xl hover:bg-[#E6A15A] transition-all duration-300 font-medium shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+        className="inline-flex items-center px-6 py-3 bg-[#B86B2B] text-white rounded-lg hover:bg-[#E6A15A] transition-all duration-300 font-base shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
       >
         <FiShoppingCart className="w-5 h-5 mr-2" />
         Thêm vào giỏ
@@ -97,4 +97,4 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
       </AnimatePresence>
     </>
   );
-}; 
+};

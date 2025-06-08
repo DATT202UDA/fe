@@ -94,7 +94,7 @@ const HomeView = () => {
               </li>
             </ul>
             <Link
-              href="/products"
+              href="/san-pham"
               className="inline-flex items-center bg-[#B86B2B] hover:bg-[#E6A15A] text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold shadow-lg transition-all duration-300 text-base md:text-lg"
             >
               Khám phá ngay
@@ -157,7 +157,6 @@ const HomeView = () => {
 
       {/* Featured Products Section */}
       <FeaturedProducts />
-      
 
       {/* Brands Section */}
       {/* <section className="py-12 md:py-20 bg-gray-50">
@@ -288,9 +287,7 @@ const HomeView = () => {
         </div>
       </section>
 
-      <div className="container" style={{ marginTop: '50px' }}>
-       
-      </div>
+      <div className="container" style={{ marginTop: '50px' }}></div>
     </div>
   );
 };

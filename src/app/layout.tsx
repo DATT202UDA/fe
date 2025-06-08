@@ -1,15 +1,23 @@
+// app/layout.tsx (Next 13+)
 import { Metadata } from 'next';
-import { Noto_Sans } from 'next/font/google';
+import { Noto_Sans, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import ChatWidget from '@/components/Chat/ChatWidget';
 import NextTopLoader from 'nextjs-toploader';
 import { Toaster } from 'react-hot-toast';
 
-const quicksand = Noto_Sans({
+const notoSans = Noto_Sans({
   subsets: ['vietnamese', 'latin'],
   weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
-  variable: '--font-quicksand',
+  variable: '--font-noto-sans',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['vietnamese', 'latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-playfair',
 });
 
 export const metadata: Metadata = {
@@ -23,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`${quicksand.variable}`}>
-      <body className={`${quicksand.className}`}>
+    <html lang="vi" className={`${notoSans.variable} ${playfair.variable}`}>
+      <body className={`${notoSans.className}`}>
         {children}
         <Toaster position="top-right" />
       </body>

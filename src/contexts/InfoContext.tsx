@@ -19,6 +19,7 @@ interface UserInfo {
   deleted_at: string | null;
   createdAt: string;
   updatedAt: string;
+  avatar: string;
 }
 
 interface InfoContextType {

@@ -85,8 +85,8 @@ const Categories = () => {
                   {category.name}
                 </h3>
                 <Link
-                  href={`/san-pham`}
-                  className="inline-flex items-center text-white hover:text-[#FFD600] transition-colors duration-300 text-sm md:text-base"
+                  href={`/san-pham?category=${category._id}`}
+                  className="inline-flex items-center text-white hover:text-[#B86B2B] transition-colors duration-300 text-sm md:text-base"
                 >
                   Xem thêm
                   <FaArrowRight className="ml-2" />

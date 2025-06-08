@@ -169,7 +169,7 @@ const PurchaseView = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="flex justify-between items-center text-sm">
+                {/* <div className="flex justify-between items-center text-sm">
                   <div>
                     <span className="font-medium">Cửa hàng: </span>
                     {productOrder.product.store.name}
@@ -186,7 +186,7 @@ const PurchaseView = () => {
                     <span className="font-medium">Tổng doanh thu: </span>
                     {formatCurrency(productOrder.total_revenue)}
                   </div>
-                </div>
+                </div> */}
 
                 <div className="border-t pt-4">
                   <h4 className="font-semibold mb-3">Chi tiết đơn hàng:</h4>

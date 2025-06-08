@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import { useCart } from '@/contexts/CartContext';
+import { useInfo } from '@/contexts/InfoContext';
 
 const Header = () => {
   const [selectedLocation, setSelectedLocation] = useState('Toàn Quốc');
@@ -34,7 +35,7 @@ const Header = () => {
   const { data: session } = useSession();
   const { items } = useCart();
   const totalQuantity = new Set(items.map((item) => item.id)).size;
-
+  const { userInfo } = useInfo();
   const handleSignOut = async () => {
     await signOut({ redirect: false });
     toast.success('Đăng xuất thành công');
@@ -51,13 +52,13 @@ const Header = () => {
   return (
     <header className="w-full bg-white shadow-sm">
       {/* Top Bar */}
-      <div className="bg-[#B86B2B] text-white py-2">
+      {/* <div className="bg-[#B86B2B] text-white py-2">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-2">
                 <FaPhoneAlt className="text-[#FFD600]" />
-                <span>Hotline: 1900-xxxx</span>
+                <span>Hotline: 0362091690</span>
               </div>
               <div className="flex items-center space-x-2">
                 <FaMapMarkerAlt className="text-[#FFD600]" />
@@ -77,7 +78,7 @@ const Header = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Header */}
       <div className="py-4">
@@ -133,10 +134,10 @@ const Header = () => {
                       onClick={() => setIsProfileDropdownOpen((v) => !v)}
                     >
                       <div className="relative w-8 h-8 rounded-full bg-[#F5E9DA] flex items-center justify-center overflow-hidden">
-                        {/* {session.user?.avatar ? (
+                        {userInfo?.avatar ? (
                           <Image
-                            src={session.user.avatar}
-                            alt={session.user.name || 'User avatar'}
+                            src={userInfo.avatar}
+                            alt={userInfo.full_name || 'User avatar'}
                             fill
                             className="object-cover"
                           />
@@ -145,7 +146,7 @@ const Header = () => {
                             size={24}
                             className="text-[#7A5C3E] group-hover:text-[#B86B2B] transition"
                           />
-                        )} */}
+                        )}
                       </div>
                       <FaChevronDown
                         size={14}
@@ -228,9 +229,10 @@ const Header = () => {
                     )}
                   </div>
                   <button
-                    className="hidden md:block bg-[#B86B2B] hover:bg-[#E6A15A] text-white font-semibold px-6 py-2.5 rounded-full transition"
+                    className="hidden md:flex items-center justify-center whitespace-nowrap px-6 py-2.5 rounded-full bg-[#B86B2B] text-white hover:bg-[#E6A15A] font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md"
                     onClick={() => router.push('/cua-hang')}
                   >
+                    <FaBox className="mr-3" size={16} />
                     Đăng bán
                   </button>
                 </>
@@ -278,6 +280,19 @@ const Header = () => {
                 className="text-[#7A5C3E] hover:text-[#B86B2B] font-medium transition"
               >
                 Sản phẩm
+              </Link>
+
+              <Link
+                href="/ve-chung-toi"
+                className="text-[#7A5C3E] hover:text-[#B86B2B] font-medium transition"
+              >
+                Về chúng tôi
+              </Link>
+              <Link
+                href="/lien-he"
+                className="text-[#7A5C3E] hover:text-[#B86B2B] font-medium transition"
+              >
+                Liên hệ
               </Link>
             </div>
           </nav>

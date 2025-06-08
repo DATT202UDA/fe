@@ -17,6 +17,7 @@ import {
   FiMapPin,
   FiPhone,
   FiMail,
+  FiCreditCard,
 } from 'react-icons/fi';
 import ProductService, { Product } from '@/services/ProductService';
 import ShopService, { StoreData } from '@/services/ShopService';
@@ -39,11 +40,13 @@ const ProductDetailPage = () => {
         setLoading(true);
         const productData = await ProductService.findOne(id as string);
         setProduct(productData);
-        console.log("productData", productData);
-        
+        console.log('productData', productData);
+
         // Fetch store information
         if (productData.store_id) {
-          const storeData = await ShopService.getStoreById(productData.store_id);
+          const storeData = await ShopService.getStoreById(
+            productData.store_id,
+          );
           setStore(storeData);
         }
       } catch (error) {
@@ -128,13 +131,9 @@ const ProductDetailPage = () => {
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center gap-1 text-yellow-400">
                   <FiStar className="w-5 h-5 fill-current" />
-                  <span className="font-medium text-[#7A5C3E]">
-                    4.8
-                  </span>
+                  <span className="font-medium text-[#7A5C3E]">4.8</span>
                 </div>
-                <span className="text-gray-500">
-                  (128 đánh giá)
-                </span>
+                <span className="text-gray-500">(128 đánh giá)</span>
               </div>
 
               <div className="space-y-2 mb-6">
@@ -158,14 +157,12 @@ const ProductDetailPage = () => {
                   <span>Miễn phí vận chuyển cho đơn từ 2 triệu</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-600">
-                  <FiShield className="w-5 h-5 text-[#B86B2B]" />
-                  <span>
-                    Bảo hành chính hãng 12 tháng
-                  </span>
+                  <FiCreditCard className="w-5 h-5 text-[#B86B2B]" />
+                  <span>Thanh toán qua momo</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-600">
                   <FiRefreshCw className="w-5 h-5 text-[#B86B2B]" />
-                  <span>Đổi trả miễn phí trong 30 ngày</span>
+                  <span>Khiếu nại trong 2 ngày</span>
                 </div>
               </div>
 
@@ -216,9 +213,9 @@ const ProductDetailPage = () => {
                     quantity={quantity}
                     variant="full"
                   />
-                  <button className="flex-1 bg-[#7A5C3E] text-white py-4 rounded-xl hover:bg-[#9B7B5C] transition-all duration-300 font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]">
+                  {/* <button className="flex-1 bg-[#7A5C3E] text-white py-4 rounded-xl hover:bg-[#9B7B5C] transition-all duration-300 font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]">
                     Mua ngay
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -239,7 +236,10 @@ const ProductDetailPage = () => {
                     />
                   </div>
                   <div>
-                    <Link href={`/cua-hang/${store._id}`} className="hover:underline">
+                    <Link
+                      href={`/cua-hang/${store._id}`}
+                      className="hover:underline"
+                    >
                       <h3 className="text-lg font-semibold text-[#7A5C3E]">
                         {store.name}
                       </h3>
