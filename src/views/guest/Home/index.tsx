@@ -7,6 +7,7 @@ import { FaArrowRight, FaStar, FaShoppingCart, FaHeart } from 'react-icons/fa';
 import FeaturedProducts from './components/FeaturedProducts';
 import Categories from './components/Categories';
 import { useState, useEffect } from 'react';
+import TopRatedStores from '../../../components/TopRatedStores';
 
 const HomeView = () => {
   const [timeLeft, setTimeLeft] = useState({
@@ -149,12 +150,14 @@ const HomeView = () => {
           </motion.div>
         </div>
       </section>
+      <TopRatedStores />
 
       {/* Categories Section */}
       <Categories />
 
       {/* Featured Products Section */}
       <FeaturedProducts />
+      
 
       {/* Brands Section */}
       {/* <section className="py-12 md:py-20 bg-gray-50">
@@ -284,6 +287,10 @@ const HomeView = () => {
           </div>
         </div>
       </section>
+
+      <div className="container" style={{ marginTop: '50px' }}>
+       
+      </div>
     </div>
   );
 };
