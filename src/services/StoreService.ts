@@ -356,6 +356,11 @@ class StoreService {
   static async deleteReview(reviewId: string): Promise<void> {
     await axiosInstance.delete(`/stores/reviews/${reviewId}`);
   }
+
+  static async getTopRatedStores(): Promise<Store[]> {
+    const response = await axiosInstance.get('/stores/top-rated');
+    return response.data;
+  }
 }
 
 export default StoreService;
