@@ -37,10 +37,7 @@ const signupSchema = z
     confirmPassword: z.string().min(1, 'Xác nhận mật khẩu không được để trống'),
     fullName: z.string().min(2, 'Họ và tên phải có ít nhất 2 ký tự'),
     phone: z.string().regex(/^\d{10}$/, 'Số điện thoại phải có 10 chữ số'),
-    address: z
-      .string()
-      .min(5, 'Địa chỉ phải có ít nhất 5 ký tự')
-      .regex(/^[a-zA-Z0-9\s,./-]+$/, 'Không chứa ký tự đặc biệt'),
+    address: z.string().min(5, 'Địa chỉ phải có ít nhất 5 ký tự'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ['confirmPassword'],
