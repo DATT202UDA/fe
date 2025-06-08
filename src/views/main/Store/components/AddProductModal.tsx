@@ -12,6 +12,7 @@ interface Product {
   price: string;
   image: File;
   categoryId: string;
+  quantity: number;
   description?: string;
 }
 
@@ -25,6 +26,7 @@ const productSchema = z.object({
     .refine((val) => Number(val) > 0, 'Giá phải lớn hơn 0'),
   description: z.string().min(1, 'Mô tả sản phẩm là bắt buộc'),
   image: z.any().optional(),
+  quantity: z.coerce.number().min(1, 'Số lượng sản phẩm là bắt buộc'),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -93,6 +95,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       categoryId: data.categoryId,
       description: data.description || '',
       image: selectedFile,
+      quantity: data.quantity,
     };
     onSubmit?.(productData);
   };
@@ -173,6 +176,23 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
               {errors.price && (
                 <p className="mt-1 text-sm text-red-500">
                   {errors.price.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Số lượng sản phẩm
+              </label>
+              <input
+                {...register('quantity', { valueAsNumber: true })}
+                type="number"
+                min="1"
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#E6A15A] focus:ring-2 focus:ring-[#E6A15A]/20 outline-none transition-colors"
+                placeholder="Nhập số lượng sản phẩm"
+              />
+              {errors.quantity && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.quantity.message}
                 </p>
               )}
             </div>
