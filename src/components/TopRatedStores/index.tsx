@@ -145,7 +145,7 @@ const TopRatedStores: React.FC = () => {
           className="text-center mb-8 md:mb-12"
         >
           <h2 className="text-2xl md:text-3xl font-bold text-[#7A5C3E] mb-3 md:mb-4">
-            Cửa hàng nổi bật22
+            Cửa hàng nổi bật
           </h2>
           <p className="text-gray-600 text-sm md:text-base">
             Những cửa hàng được đánh giá cao nhất

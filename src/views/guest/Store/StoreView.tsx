@@ -13,13 +13,13 @@ import {
   FaEnvelope,
   FaStar,
   FaShoppingCart,
+  FaInfoCircle,
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { useCart } from '@/contexts/CartContext';
 import { CartProvider } from '@/contexts/CartContext';
 import StoreReview from './components/StoreReview';
 import StoreReviewList from './components/StoreReviewList';
-
 
 export default function StoreView() {
   const params = useParams();
@@ -53,7 +53,7 @@ export default function StoreView() {
       id: product._id,
       name: product.name,
       price: product.price,
-      image: product.image_url || '/images/default-product.png'
+      image: product.image_url || '/images/default-product.png',
     });
     toast.success('Đã thêm vào giỏ hàng');
   };
@@ -104,7 +104,7 @@ export default function StoreView() {
             className="object-cover opacity-30"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#F8F6F3]/80 via-white/60 to-[#F8F6F3]/80" />
-          
+
           <div className="max-w-7xl mx-auto px-4 w-full">
             <div className="flex items-center gap-8">
               <motion.div
@@ -132,17 +132,11 @@ export default function StoreView() {
                   </motion.h1>
                   <div className="flex items-center gap-1 text-[#E6A15A]">
                     <FaStar />
-                    <span className="font-semibold">{store.rate_avg.toFixed(1)}</span>
+                    <span className="font-semibold">
+                      {store.rate_avg.toFixed(1)}
+                    </span>
                   </div>
                 </div>
-                <motion.p
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.8 }}
-                  className="text-gray-600 max-w-2xl"
-                >
-                  {store.description}
-                </motion.p>
               </div>
             </div>
           </div>
@@ -193,6 +187,14 @@ export default function StoreView() {
                         <p className="text-[#7A5C3E]">{store.email}</p>
                       </div>
                     </div>
+
+                    <div className="flex items-start gap-3">
+                      <FaInfoCircle className="text-[#E6A15A]" />
+                      <div>
+                        <p className="text-sm text-gray-500">Mô tả cửa hàng</p>
+                        <p className="text-[#7A5C3E]">{store.description}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -215,7 +217,9 @@ export default function StoreView() {
 
                   {products.length === 0 ? (
                     <div className="text-center py-8">
-                      <p className="text-gray-500">Cửa hàng chưa có sản phẩm nào</p>
+                      <p className="text-gray-500">
+                        Cửa hàng chưa có sản phẩm nào
+                      </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -228,7 +232,10 @@ export default function StoreView() {
                         >
                           <div className="relative h-48">
                             <Image
-                              src={product.image_url || '/images/default-product.png'}
+                              src={
+                                product.image_url ||
+                                '/images/default-product.png'
+                              }
                               alt={product.name}
                               fill
                               className="object-cover"
@@ -245,7 +252,7 @@ export default function StoreView() {
                               <span className="text-lg font-bold text-[#E6A15A]">
                                 {product.price.toLocaleString('vi-VN')}đ
                               </span>
-                              <button 
+                              <button
                                 onClick={() => handleAddToCart(product)}
                                 className="p-2 rounded-full bg-[#E6A15A]/10 text-[#E6A15A] hover:bg-[#E6A15A]/20 transition-colors"
                               >
@@ -266,7 +273,10 @@ export default function StoreView() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 1, duration: 0.8 }}
               >
-                <StoreReview storeId={params.id as string} onReviewAdded={handleReviewAdded} />
+                <StoreReview
+                  storeId={params.id as string}
+                  onReviewAdded={handleReviewAdded}
+                />
               </motion.div>
 
               <motion.div
@@ -275,7 +285,9 @@ export default function StoreView() {
                 transition={{ delay: 1.2, duration: 0.8 }}
               >
                 <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-[#E6A15A]/10">
-                  <h2 className="text-2xl font-bold text-[#B86B2B] mb-6">Đánh giá từ khách hàng</h2>
+                  <h2 className="text-2xl font-bold text-[#B86B2B] mb-6">
+                    Đánh giá từ khách hàng
+                  </h2>
                   <StoreReviewList storeId={params.id as string} />
                 </div>
               </motion.div>
@@ -285,4 +297,4 @@ export default function StoreView() {
       </div>
     </CartProvider>
   );
-} 
+}
