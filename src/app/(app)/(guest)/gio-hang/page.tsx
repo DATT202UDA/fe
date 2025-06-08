@@ -12,10 +12,12 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import { FaSpinner } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useInfo } from '@/contexts/InfoContext';
 
 export default function CartPage() {
   const router = useRouter();
   const session = useSession();
+  const { refreshUserInfo } = useInfo();
   const {
     items,
     removeItem,
@@ -91,6 +93,7 @@ export default function CartPage() {
         toast.success('Đặt hàng thành công!');
         selectedItemsList.forEach((item) => removeItem(item.id));
         setShowConfirmationModal(false);
+        await refreshUserInfo();
         router.push('/mua'); // Redirect to orders page
       }
     } catch (error: any) {

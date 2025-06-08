@@ -131,7 +131,7 @@ const ProductDetailPage = () => {
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center gap-1 text-yellow-400">
                   <FiStar className="w-5 h-5 fill-current" />
-                  <span className="font-medium text-[#7A5C3E]">4.8</span>
+                  <span className="font-medium text-[#7A5C3E]">{product?.rate_avg}</span>
                 </div>
                 <span className="text-gray-500">(128 đánh giá)</span>
               </div>
@@ -141,13 +141,16 @@ const ProductDetailPage = () => {
                   <span className="text-3xl font-bold text-[#B86B2B]">
                     {formatCurrency(product.price)}
                   </span>
-                  {/* Nếu có giá gốc và giảm giá */}
-                  {/* <span className="text-lg text-gray-500 line-through">
-                    {formatCurrency(product.originalPrice)}
-                  </span>
-                  <span className="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-sm font-medium">
-                    -17%
-                  </span> */}
+                </div>
+                <div className="flex items-center gap-4 text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Còn lại:</span>
+                    <span>{product.quantity} sản phẩm</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Đã bán:</span>
+                    <span>{product.sold_quantity || 0} sản phẩm</span>
+                  </div>
                 </div>
               </div>
 

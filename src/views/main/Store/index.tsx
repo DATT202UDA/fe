@@ -95,6 +95,7 @@ const StoreView = () => {
     description: z.string().min(1, 'Mô tả sản phẩm là bắt buộc'),
     image: z.any().optional(),
     categoryId: z.string().min(1, 'Danh mục sản phẩm là bắt buộc'),
+    quantity: z.coerce.number().min(1, 'Số lượng sản phẩm là bắt buộc'),
   });
 
   type ProductFormData = z.infer<typeof productSchema>;
@@ -208,6 +209,7 @@ const StoreView = () => {
         category_id: data.categoryId,
         status: 'active',
         image_url: imageUrl,
+        quantity: data.quantity,
       };
 
       console.log('productData:', productData);

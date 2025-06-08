@@ -14,6 +14,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import StoreService, { CreateStoreRequestDto } from '@/services/StoreService';
+import Link from 'next/link';
 
 // Validation schema
 const storeSchema = z.object({
@@ -40,6 +41,9 @@ const storeSchema = z.object({
     .email('Email không hợp lệ')
     .max(100, 'Email không được vượt quá 100 ký tự'),
   image_url: z.string().optional(),
+  acceptTerms: z.boolean().refine((val) => val === true, {
+    message: 'Bạn phải đồng ý với điều khoản và điều kiện',
+  }),
 });
 
 type StoreFormData = z.infer<typeof storeSchema>;
@@ -358,6 +362,41 @@ const NotExistStore = () => {
 
             {/* Nút gửi yêu cầu */}
             <div className="pt-6 border-t">
+              <div className="mb-6">
+                <Controller
+                  name="acceptTerms"
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <div className="flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        id="terms"
+                        checked={value}
+                        onChange={(e) => onChange(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-[#E6A15A] focus:ring-[#E6A15A]"
+                      />
+                      <label htmlFor="terms" className="text-sm text-gray-600">
+                        Tôi đã đọc và đồng ý với{' '}
+                        <Link
+                          href="/dieu-khoan-cua-hang"
+                          className="text-[#E6A15A] hover:underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          điều khoản và điều kiện
+                        </Link>{' '}
+                        khi tạo cửa hàng
+                      </label>
+                    </div>
+                  )}
+                />
+                {errors.acceptTerms && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.acceptTerms.message}
+                  </p>
+                )}
+              </div>
+
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

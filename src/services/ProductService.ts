@@ -15,6 +15,8 @@ export interface Product {
   updated_at?: string;
   image_url: string;
   rate_avg: number;
+  quantity: number;
+  sold_quantity: number;
 }
 
 export interface CreateProductDto {
@@ -26,6 +28,7 @@ export interface CreateProductDto {
   price: number;
   status: string;
   image_url?: string;
+  quantity: number;
 }
 
 export interface UpdateProductDto extends Partial<CreateProductDto> {}
