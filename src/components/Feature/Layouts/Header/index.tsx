@@ -39,6 +39,7 @@ const Header = () => {
   const handleSignOut = async () => {
     await signOut({ redirect: false });
     toast.success('Đăng xuất thành công');
+    localStorage.removeItem('chat_session_id');
     window.location.reload();
   };
 

@@ -1,205 +1,34 @@
 'use client';
 
-import { useState, useRef, useEffect, Children } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaComments,
   FaTimes,
   FaPaperPlane,
   FaRobot,
-  FaUserCircle,
-  FaStar,
-  FaCircle,
   FaHistory,
   FaPlus,
   FaTrash,
   FaChevronRight,
   FaArrowLeft,
+  FaStar,
 } from 'react-icons/fa';
 import Image from 'next/image';
-import ChatService from '../../services/ChatService';
-import ReactMarkdown from 'react-markdown';
-import SesstionChatService from '@/services/SesstionChatService';
 import { useSession } from 'next-auth/react';
-import MessageService from '@/services/MessageService';
 import { toast } from 'react-hot-toast';
+import LoadingDots from './LoadingDots';
+import MessageMarkdown from './Message';
 
+// Services
+import ChatService from '@/services/ChatService';
+import SesstionChatService from '@/services/SesstionChatService';
+import MessageService from '@/services/MessageService';
+
+// Types
 export enum Flag {
   BEST_SELLING = 'best_selling',
   TOP_RATED = 'top_rated',
-  // FEATURED = "featured",
-}
-
-const LoadingDots = () => (
-  <div className="flex items-center gap-1">
-    <span
-      className="w-2 h-2 bg-[#B86B2B] rounded-full animate-bounce"
-      style={{ animationDelay: '0ms' }}
-    ></span>
-    <span
-      className="w-2 h-2 bg-[#B86B2B] rounded-full animate-bounce"
-      style={{ animationDelay: '150ms' }}
-    ></span>
-    <span
-      className="w-2 h-2 bg-[#B86B2B] rounded-full animate-bounce"
-      style={{ animationDelay: '300ms' }}
-    ></span>
-  </div>
-);
-
-const Message = ({ message }: { message: Message }) => {
-  return (
-    <div
-      key={message._id}
-      className={`flex ${
-        message.sender === 'user' ? 'justify-end' : 'justify-start'
-      } mb-2`}
-    >
-      <div
-        className={`max-w-[85%] rounded-xl px-3 py-2 ${
-          message.sender === 'user'
-            ? 'bg-[#E6A15A] text-white'
-            : 'bg-white shadow-sm border border-gray-100 text-gray-800'
-        }`}
-      >
-        {message.sender === 'bot' ? (
-          <div className="prose prose-sm max-w-none">
-            <ReactMarkdown
-              components={{
-                img: ({ node, ...props }) => (
-                  <div className="my-2">
-                    <img
-                      {...props}
-                      className="rounded-lg w-full max-w-[180px] h-auto object-cover shadow-sm hover:shadow transition-shadow duration-300"
-                      loading="lazy"
-                    />
-                  </div>
-                ),
-
-                a: ({ node, children, href, ...props }) => {
-                  // Kiểm tra nếu là link sản phẩm
-                  const isProductLink = href?.includes('/san-pham/');
-                  // Kiểm tra nếu là link xem chi tiết
-                  const isViewDetailLink = children
-                    ?.toString()
-                    .includes('Xem chi tiết');
-
-                  if (isProductLink && !isViewDetailLink) {
-                    return (
-                      <div className="bg-[#FDFBF8] p-3 rounded-lg border border-[#E6A15A]/10 hover:border-[#E6A15A]/30 shadow-sm hover:shadow transition-all duration-300 mb-3">
-                        <a
-                          href={href}
-                          {...props}
-                          className="text-[#5C3D2E] hover:text-[#B86B2B] font-medium no-underline text-base"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {children}
-                        </a>
-                      </div>
-                    );
-                  }
-
-                  if (isViewDetailLink) {
-                    return (
-                      <a
-                        href={href}
-                        {...props}
-                        className="inline-flex items-center gap-1 text-[#B86B2B] hover:text-[#E6A15A] transition-colors no-underline text-sm font-medium mt-2"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {children}
-                      </a>
-                    );
-                  }
-
-                  return (
-                    <a
-                      href={href}
-                      {...props}
-                      className="text-[#B86B2B] hover:text-[#E6A15A] transition-colors no-underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {children}
-                    </a>
-                  );
-                },
-                p: ({ node, children, ...props }) => {
-                  // Kiểm tra nếu paragraph chứa hình ảnh
-                  const hasImage = Children.toArray(children).some(
-                    (child: any) => child?.type?.name === 'img',
-                  );
-
-                  return (
-                    <p
-                      {...props}
-                      className={`${
-                        hasImage ? 'my-2' : 'mb-2 last:mb-0'
-                      } leading-relaxed text-sm`}
-                    >
-                      {children}
-                    </p>
-                  );
-                },
-                strong: ({ node, ...props }) => (
-                  <strong {...props} className="font-medium text-[#5C3D2E]" />
-                ),
-                h3: ({ node, ...props }) => (
-                  <h3
-                    {...props}
-                    className="text-base font-semibold text-[#5C3D2E] mb-2"
-                  >
-                    {props.children}
-                  </h3>
-                ),
-                ul: ({ node, ...props }) => (
-                  <ul {...props} className="space-y-1 my-2 list-none pl-0" />
-                ),
-                li: ({ node, ...props }) => (
-                  <li
-                    {...props}
-                    className="flex items-baseline gap-1.5 text-gray-600 text-sm"
-                  >
-                    <span className="text-[#E6A15A] text-xs">•</span>
-                    <span>{props.children}</span>
-                  </li>
-                ),
-                hr: ({ node, ...props }) => (
-                  <hr
-                    {...props}
-                    className="my-3 border-t border-[#E6A15A]/10"
-                  />
-                ),
-              }}
-            >
-              {message.text}
-            </ReactMarkdown>
-          </div>
-        ) : (
-          <p className="text-sm">{message.text}</p>
-        )}
-        <div
-          className={`text-[10px] mt-1 ${
-            message.sender === 'user' ? 'text-white/70' : 'text-gray-500'
-          }`}
-        >
-          {new Date(message.timestamp).toLocaleTimeString()}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const STORAGE_KEY = 'chat_history';
-const MAX_HISTORY = 10; // Số lượng cuộc trò chuyện tối đa được lưu
-
-interface ChatHistory {
-  id: string;
-  messages: any[];
-  createdAt: Date;
-  preview: string;
 }
 
 interface Message {
@@ -219,37 +48,52 @@ interface Message {
   __v: number;
 }
 
+interface ChatHistory {
+  id: string;
+  messages: Message[];
+  createdAt: Date;
+  preview: string;
+}
+
+const STORAGE_KEY = 'chat_history';
+const MAX_HISTORY = 10; // Số lượng cuộc trò chuyện tối đa được lưu
+
 const ChatWidget = () => {
+  // State
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      _id: new Date().getTime().toString(),
+      session_id: '1',
+      sender: 'bot',
+      text: 'Xin chào! Tôi có thể giúp gì cho bạn?',
+      type: 'text',
+      is_markdown: false,
+      flag: null,
+      reply_to: null,
+      timestamp: new Date().toISOString(),
+      metadata: null,
+      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      __v: 0,
+    },
+  ]);
   const [isLoading, setIsLoading] = useState(false);
   const [botTyping, setBotTyping] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
-  const [currentChatId, setCurrentChatId] = useState<string>(
-    new Date().getTime().toString(),
-  );
-
-  const session = useSession();
-
   const [sesstionChat, setSesstionChat] = useState<string>();
 
+  const session = useSession();
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Load chat history from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const history = JSON.parse(stored);
-      setChatHistory(
-        history.map((h: any) => ({
-          ...h,
-          createdAt: new Date(h.createdAt),
-        })),
-      );
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, []);
+  }, [messages, botTyping]);
 
   useEffect(() => {
     if (session.status !== 'authenticated') return;
@@ -257,13 +101,10 @@ const ChatWidget = () => {
     const fetchSesstionChat = async () => {
       try {
         const existing = localStorage.getItem('chat_session_id') || '';
-        console.log(existing, 'existing');
         if (existing !== 'null' && existing !== 'undefined' && existing) {
           setSesstionChat(existing);
         } else {
-          console.log('create new session');
           const { data } = await SesstionChatService.createSesstionChat();
-
           if (data && data._id) {
             localStorage.setItem('chat_session_id', data._id);
             setSesstionChat(data._id);
@@ -271,9 +112,9 @@ const ChatWidget = () => {
         }
       } catch (error) {
         console.error('Error fetching session chat:', error);
+        toast.error('Có lỗi khi tạo phiên trò chuyện');
       }
     };
-
     fetchSesstionChat();
   }, [session]);
 
@@ -282,31 +123,10 @@ const ChatWidget = () => {
 
     const fetchMessages = async () => {
       try {
-        //loading
         setIsLoading(true);
         const { data } = await MessageService.getMessages(sesstionChat);
         if (Array.isArray(data) && data.length > 0) {
           setMessages(data);
-        } else {
-          // If no messages, set default welcome message
-          setMessages([
-            {
-              _id: '1',
-              session_id: sesstionChat,
-              sender: 'bot',
-              text: 'Xin chào! Tôi có thể giúp gì cho bạn?',
-              type: 'text',
-              is_markdown: false,
-              flag: null,
-              reply_to: null,
-              timestamp: new Date().toISOString(),
-              metadata: null,
-              created_at: new Date().toISOString(),
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              __v: 0,
-            },
-          ]);
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -318,44 +138,58 @@ const ChatWidget = () => {
     fetchMessages();
   }, [sesstionChat]);
 
-  // Save current chat to history when messages change
-  useEffect(() => {
-    if (messages.length > 1) {
-      // Only save if there's more than welcome message
-      const updatedHistory = [...chatHistory];
-      const currentChatIndex = updatedHistory.findIndex(
-        (h) => h.id === currentChatId,
-      );
+  // Handlers
+  const handleNewChat = async () => {
+    if (session.status !== 'authenticated') {
+      toast.error('Vui lòng đăng nhập để sử dụng tính năng này');
+      return;
+    }
 
-      const chatData = {
-        id: currentChatId,
-        messages: messages,
-        createdAt: new Date(),
-        preview: messages[messages.length - 1].text.slice(0, 50) + '...',
-      };
+    const welcomeMessage: Message = {
+      _id: new Date().getTime().toString(),
+      session_id: sesstionChat || '',
+      sender: 'bot',
+      text: 'Xin chào! Tôi có thể giúp gì cho bạn?',
+      type: 'text',
+      is_markdown: false,
+      flag: null,
+      reply_to: null,
+      timestamp: new Date().toISOString(),
+      metadata: null,
+      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      __v: 0,
+    };
 
-      if (currentChatIndex !== -1) {
-        updatedHistory[currentChatIndex] = chatData;
-      } else {
-        updatedHistory.unshift(chatData);
-        // Keep only MAX_HISTORY most recent chats
-        if (updatedHistory.length > MAX_HISTORY) {
-          updatedHistory.pop();
-        }
+    try {
+      const { data } = await SesstionChatService.createSesstionChat();
+      if (data && data._id) {
+        localStorage.setItem('chat_session_id', data._id);
+        setSesstionChat(data._id);
+        setMessages([welcomeMessage]);
+        setShowHistory(false);
       }
-
-      setChatHistory(updatedHistory);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+      toast.error('Có lỗi khi tạo phiên trò chuyện mới');
     }
-  }, [messages]);
+  };
 
-  useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  const handleViewHistory = () => {
+    if (session.status !== 'authenticated') {
+      toast.error('Vui lòng đăng nhập để sử dụng tính năng này');
+      return;
     }
-  }, [messages, botTyping]);
+    setShowHistory(true);
+  };
 
   const handleTopProducts = async () => {
+    if (session.status !== 'authenticated') {
+      toast.error('Vui lòng đăng nhập để sử dụng tính năng này');
+      return;
+    }
+
     setIsLoading(true);
     setBotTyping('');
     try {
@@ -401,11 +235,17 @@ const ChatWidget = () => {
         __v: 0,
       };
       setMessages([...messages, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleTopRated = async () => {
+    if (session.status !== 'authenticated') {
+      toast.error('Vui lòng đăng nhập để sử dụng tính năng này');
+      return;
+    }
+
     setIsLoading(true);
     setBotTyping('');
     try {
@@ -451,102 +291,24 @@ const ChatWidget = () => {
         __v: 0,
       };
       setMessages([...messages, errorMessage]);
-    }
-    setIsLoading(false);
-  };
-
-  const handleSendMessage = async () => {
-    if (message.trim()) {
-      const userMessage: Message = {
-        _id: new Date().getTime().toString(),
-        session_id: sesstionChat || '',
-        sender: 'user',
-        text: message,
-        type: 'text',
-        is_markdown: false,
-        flag: null,
-        reply_to: null,
-        timestamp: new Date().toISOString(),
-        metadata: null,
-        created_at: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        __v: 0,
-      };
-
-      setMessages([...messages, userMessage]);
-      setIsLoading(true);
-      setBotTyping('');
-      const userMsg = message;
-      setMessage('');
-
-      try {
-        if (!sesstionChat) {
-          toast.error('Vui lòng tạo phiên trò chuyện trước khi gửi tin nhắn');
-          return;
-        }
-
-        const res = await ChatService.sendMessage(userMsg, sesstionChat);
-
-        const botMessage: Message = {
-          _id: new Date().getTime().toString(),
-          session_id: sesstionChat,
-          sender: 'bot',
-          text: res,
-          type: 'text',
-          is_markdown: /[!#\[\](){}*_`]/.test(res),
-          flag: null,
-          reply_to: userMessage,
-          timestamp: new Date().toISOString(),
-          metadata: null,
-          created_at: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          __v: 0,
-        };
-
-        if (botMessage.is_markdown) {
-          setMessages([...messages, userMessage, botMessage]);
-        } else {
-          let botMsg = '';
-          for (let i = 0; i < res.length; i++) {
-            botMsg += res[i];
-            setBotTyping(botMsg);
-            await new Promise((r) => setTimeout(r, 18));
-          }
-          setMessages([...messages, userMessage, botMessage]);
-          setBotTyping('');
-        }
-      } catch (e: any) {
-        const errorMessage: Message = {
-          _id: new Date().getTime().toString(),
-          session_id: sesstionChat || '',
-          sender: 'bot',
-          text: e.message || 'Có lỗi khi gửi tin nhắn. Vui lòng thử lại.',
-          type: 'text',
-          is_markdown: false,
-          flag: null,
-          reply_to: userMessage,
-          timestamp: new Date().toISOString(),
-          metadata: null,
-          created_at: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          __v: 0,
-        };
-        setMessages([...messages, userMessage, errorMessage]);
-      }
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const handleNewChat = async () => {
-    // setCurrentChatId(new Date().getTime().toString());
-    const welcomeMessage: Message = {
+  const handleSendMessage = async () => {
+    if (session.status !== 'authenticated') {
+      toast.error('Vui lòng đăng nhập để sử dụng tính năng này');
+      return;
+    }
+
+    if (!message.trim()) return;
+
+    const userMessage: Message = {
       _id: new Date().getTime().toString(),
       session_id: sesstionChat || '',
-      sender: 'bot',
-      text: 'Xin chào! Tôi có thể giúp gì cho bạn?',
+      sender: 'user',
+      text: message,
       type: 'text',
       is_markdown: false,
       flag: null,
@@ -558,28 +320,74 @@ const ChatWidget = () => {
       updatedAt: new Date().toISOString(),
       __v: 0,
     };
-    // setMessages([welcomeMessage]);
-    // setShowHistory(false);
+
+    setMessages([...messages, userMessage]);
+    setIsLoading(true);
+    setBotTyping('');
+    const userMsg = message;
+    setMessage('');
+
     try {
-      const { data } = await SesstionChatService.createSesstionChat();
-      if (data && data._id) {
-        localStorage.setItem('chat_session_id', data._id);
-        setSesstionChat(data._id);
-        setMessages([welcomeMessage]);
-        setShowHistory(false);
+      if (!sesstionChat) {
+        toast.error('Vui lòng tạo phiên trò chuyện trước khi gửi tin nhắn');
+        return;
       }
-    } catch (error) {
-      console.error('Error creating new chat:', error);
-      toast.error('Có lỗi khi tạo phiên trò chuyện mới');
+
+      const res = await ChatService.sendMessage(userMsg, sesstionChat);
+
+      const botMessage: Message = {
+        _id: new Date().getTime().toString(),
+        session_id: sesstionChat,
+        sender: 'bot',
+        text: res,
+        type: 'text',
+        is_markdown: /[!#\[\](){}*_`]/.test(res),
+        flag: null,
+        reply_to: userMessage,
+        timestamp: new Date().toISOString(),
+        metadata: null,
+        created_at: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        __v: 0,
+      };
+
+      if (botMessage.is_markdown) {
+        setMessages([...messages, userMessage, botMessage]);
+      } else {
+        let botMsg = '';
+        for (let i = 0; i < res.length; i++) {
+          botMsg += res[i];
+          setBotTyping(botMsg);
+          await new Promise((r) => setTimeout(r, 18));
+        }
+        setMessages([...messages, userMessage, botMessage]);
+        setBotTyping('');
+      }
+    } catch (e: any) {
+      const errorMessage: Message = {
+        _id: new Date().getTime().toString(),
+        session_id: sesstionChat || '',
+        sender: 'bot',
+        text: e.message || 'Có lỗi khi gửi tin nhắn. Vui lòng thử lại.',
+        type: 'text',
+        is_markdown: false,
+        flag: null,
+        reply_to: userMessage,
+        timestamp: new Date().toISOString(),
+        metadata: null,
+        created_at: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        __v: 0,
+      };
+      setMessages([...messages, userMessage, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleViewHistory = () => {
-    setShowHistory(true);
-  };
-
   const loadChatFromHistory = (chat: ChatHistory) => {
-    setCurrentChatId(chat.id);
     setMessages(chat.messages);
     setShowHistory(false);
   };
@@ -603,7 +411,7 @@ const ChatWidget = () => {
         {isOpen ? (
           <FaTimes size={20} className="sm:w-6 sm:h-6 w-5 h-5" />
         ) : (
-          <FaComments size={20} className="sm:w-6 sm:h-6 w-5 h-5" />
+          <FaRobot size={20} className="sm:w-6 sm:h-6 w-5 h-5" />
         )}
       </motion.button>
 
@@ -622,8 +430,7 @@ const ChatWidget = () => {
               <>
                 {/* History View */}
                 <div className="bg-[#B86B2B]/80 backdrop-blur-md text-white p-3 sm:p-4 flex items-center justify-between rounded-t-3xl">
-                  <h3 className="font-semibold text-sm sm:text-base">
-                    {/* back */}
+                  <h3 className="font-semibold text-sm sm:text-base flex items-center gap-2">
                     <button
                       onClick={() => setShowHistory(false)}
                       className="p-1.5 hover:bg-white/20 rounded-full transition-colors"
@@ -632,12 +439,6 @@ const ChatWidget = () => {
                     </button>
                     Lịch sử trò chuyện
                   </h3>
-                  <button
-                    onClick={() => setShowHistory(false)}
-                    className="p-1.5 hover:bg-white/20 rounded-full transition-colors"
-                  >
-                    <FaTimes size={14} />
-                  </button>
                 </div>
                 <div className="flex-1 overflow-y-auto bg-gradient-to-b from-[#F5E9DA]/60 to-white/80">
                   {chatHistory.length === 0 ? (
@@ -686,7 +487,6 @@ const ChatWidget = () => {
               </>
             ) : (
               <>
-                {/* Normal Chat View */}
                 {/* Chat Header */}
                 <div className="bg-[#B86B2B]/80 backdrop-blur-md text-white p-3 sm:p-4 flex items-center justify-between rounded-t-3xl">
                   <div className="flex items-center gap-3">
@@ -726,9 +526,9 @@ const ChatWidget = () => {
                 {/* Chat Messages */}
                 <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-gradient-to-b from-[#F5E9DA]/60 to-white/80 transition-all">
                   {messages.map((msg) => (
-                    <Message key={msg._id} message={msg} />
+                    <MessageMarkdown key={msg._id} message={msg} />
                   ))}
-                  {/* Hiệu ứng bot đang trả lời kiểu chat gpt */}
+                  {/* Bot typing effect */}
                   {botTyping && (
                     <div className="flex items-end gap-2 justify-start">
                       <div className="flex-shrink-0">
@@ -744,6 +544,7 @@ const ChatWidget = () => {
                       </div>
                     </div>
                   )}
+                  {/* Loading indicator */}
                   {isLoading && !botTyping && (
                     <div className="flex items-end gap-2 justify-start">
                       <div className="flex-shrink-0">
@@ -756,7 +557,7 @@ const ChatWidget = () => {
                       </div>
                     </div>
                   )}
-                  {/* Show buttons after bot response or at start */}
+                  {/* Quick action buttons */}
                   {((messages.length === 1 && !isLoading && !botTyping) ||
                     (messages.length > 1 &&
                       !isLoading &&
