@@ -1,14 +1,15 @@
 import axiosInstance from '@/lib/axios';
+import { Flag } from '@/components/Chat/ChatWidget';
 
 class ChatService {
-  static async sendMessage(message: string) {
+  static async sendMessage(message: string, session_id?: string, flag?: Flag) {
     try {
-      console.log('Sending message:', message);
-
       const res = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_API_URL}/openai/generate-content`,
         {
           prompt: message,
+          flag,
+          session_id,
         },
       );
 
